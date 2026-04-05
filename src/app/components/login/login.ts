@@ -37,7 +37,10 @@ export class LoginComponent {
               this.router.navigate(['/feed']);
             },
             error: (err) => {
-              console.error('Error al iniciar sesión', err);
+            console.error('Error al iniciar sesión', err);
+            if (err.status === 401) {
+                alert('Solo se permiten correos institucionales de upsin.edu.mx');
+              }
             }
           });
         }
