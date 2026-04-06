@@ -10,7 +10,7 @@
       <div class="publicacion">
 
         <div class="publicacion-header">
-          <img [src]="publicacion.usuario.fotoPerfil" alt="foto perfil"/>
+          <img [src]="publicacion.usuario.fotoPerfil" alt="foto"/>
           <div>
             <p>{{ publicacion.usuario.nombres }} {{ publicacion.usuario.apellidos }}</p>
             <span>{{ publicacion.importancia }}</span>
@@ -28,14 +28,44 @@
         }
 
         <div class="publicacion-acciones">
-          <button (click)="darLike(publicacion)">
-            {{ publicacion.meGusta ? 'Me gusta' : 'Me gusta' }}
-            {{ publicacion.totalLikes }}
+          <button (click)="toggleLike(publicacion)">
+            {{ publicacion.meGusta ? '❤️' : '🤍' }} {{ publicacion.totalLikes }}
           </button>
           <button (click)="toggleComentarios(publicacion)">
-            Comentarios {{ publicacion.totalComentarios }}
+            💬 {{ publicacion.totalComentarios }}
           </button>
         </div>
+
+        @if (publicacion.comentariosAbiertos) {
+          <div class="comentarios">
+            @for (comentario of publicacion.comentarios; track comentario.id) {
+            <div class="comentario">
+              <img [src]="comentario.autorFoto" alt="foto"/>
+              <div>
+                <p>{{ comentario.autorNombre }}</p>
+                <p>{{ comentario.texto }}</p>
+                <button (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
+                @if (comentario.respondiendo) {
+                  <div class="respuesta">
+                    <input
+                      [(ngModel)]="comentario.textoRespuesta"
+                      placeholder="Escribe una respuesta..."
+                    />
+                    <button (click)="comentar(publicacion, comentario.id, comentario.textoRespuesta)">Enviar</button> 
+                  </div>
+                }
+              </div>
+            </div>
+          }
+            <div class="nuevo-comentario">
+              <input
+                [(ngModel)]="publicacion.nuevoComentario"
+                placeholder="Escribe un comentario..."
+              />
+              <button (click)="comentar(publicacion)">Enviar</button>
+            </div>
+          </div>
+        }
 
       </div>
     }

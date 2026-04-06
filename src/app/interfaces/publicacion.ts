@@ -3,6 +3,20 @@ import { Usuario } from './usuario';
 export interface MultimediaPublicacion {
   id: number;
   ruta: string;
+  tipo: string;
+}
+
+export interface Comentario {
+  id: number;
+  texto: string;
+  fecha: string;
+  autorNombre: string;
+  autorFoto: string;
+  matricula: string;
+  idPublicacion: number;
+  idPadre: number | null;
+  respondiendo?: boolean;
+  textoRespuesta?: string;
 }
 
 export interface Publicacion {
@@ -10,8 +24,11 @@ export interface Publicacion {
   texto: string;
   importancia: string;
   multimedia: MultimediaPublicacion[];
-  usuario: Usuario;
+  usuario: any;
   totalLikes: number;
   totalComentarios: number;
   meGusta: boolean;
+  comentariosAbiertos?: boolean;
+  comentarios?: Comentario[];
+  nuevoComentario?: string;
 }
