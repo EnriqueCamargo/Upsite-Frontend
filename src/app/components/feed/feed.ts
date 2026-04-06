@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PublicacionService } from '../../services/publicacion';
 import { Publicacion } from '../../interfaces/publicacion';
+import { SupabaseService } from '../../services/supabase';
 
 @Component({
   selector: 'app-feed',
@@ -27,6 +28,7 @@ export class FeedComponent implements OnInit {
 
   constructor(
     private publicacionService: PublicacionService,
+    private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
@@ -118,42 +120,31 @@ export class FeedComponent implements OnInit {
     this.archivosSeleccionados = Array.from(event.target.files);
   }
 
-  publicar() {
+  async publicar() {
     if (!this.nuevaPublicacion.texto.trim()) return;
     this.publicando = true;
 
     this.publicacionService.crear(
-      this.nuevaPublicacion.texto,
-      this.nuevaPublicacion.importancia,
-      this.nuevaPublicacion.esGlobal
+        this.nuevaPublicacion.texto,
+        this.nuevaPublicacion.importancia,
+        this.nuevaPublicacion.esGlobal
     ).subscribe({
-      next: (publicacion) => {
-        if (this.archivosSeleccionados.length > 0) {
-          const subidas = this.archivosSeleccionados.map(archivo =>
-            this.publicacionService.subirMultimedia(publicacion.id, archivo)
-          );
-          Promise.all(subidas.map(s => s.toPromise())).then(() => {
+        next: async (publicacion) => {
+            if (this.archivosSeleccionados.length > 0) {
+                for (const archivo of this.archivosSeleccionados) {
+                    const url = await this.supabaseService.subirArchivo(archivo);
+                    await this.publicacionService.subirMultimedia(publicacion.id, url, archivo.type).toPromise();
+                }
+            }
             this.nuevaPublicacion.texto = '';
             this.archivosSeleccionados = [];
             this.publicando = false;
             this.cargarFeed();
-          });
-        } else {
-          this.publicaciones.unshift({
-            ...publicacion,
-            comentariosAbiertos: false,
-            comentarios: [],
-            nuevoComentario: ''
-          });
-          this.nuevaPublicacion.texto = '';
-          this.publicando = false;
-          this.cdr.detectChanges();
+        },
+        error: (err) => {
+            console.error('Error al publicar', err);
+            this.publicando = false;
         }
-      },
-      error: (err) => {
-        console.error('Error al publicar', err);
-        this.publicando = false;
-      }
     });
-  }
+}
 }

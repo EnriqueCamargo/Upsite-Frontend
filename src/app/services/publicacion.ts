@@ -56,9 +56,10 @@ export class PublicacionService {
     });
 }
 
-subirMultimedia(idPublicacion: number, archivo: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('archivo', archivo);
-    return this.http.post<any>(`${this.apiUrl}/publicaciones/${idPublicacion}/multimedia`, formData);
+subirMultimedia(idPublicacion: number, url: string, tipo: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/publicaciones/${idPublicacion}/multimedia`, {
+        ruta: url,
+        tipoMultimedia: tipo.startsWith('image') ? 'IMAGE' : 'VIDEO'
+    });
 }
 }
