@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment.development';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8080';
+  private apiUrl = environment.apiUrl;
 
   constructor(
     private http: HttpClient,
@@ -21,17 +22,25 @@ export class AuthService {
   }
 
   guardarSesion(token: string, usuario: any) {
-    localStorage.setItem('jwt', token);
-    localStorage.setItem('usuario', JSON.stringify(usuario));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('jwt', token);
+      localStorage.setItem('usuario', JSON.stringify(usuario));
+    }
   }
 
   getToken(): string | null {
-    return localStorage.getItem('jwt');
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('jwt');
+    }
+    return null;
   }
 
   getUsuario(): any {
-    const usuario = localStorage.getItem('usuario');
-    return usuario ? JSON.parse(usuario) : null;
+    if (typeof window !== 'undefined') {
+      const usuario = localStorage.getItem('usuario');
+      return usuario ? JSON.parse(usuario) : null;
+    }
+    return null;
   }
 
   isLoggedIn(): boolean {
@@ -39,8 +48,10 @@ export class AuthService {
   }
 
   logout() {
-    localStorage.removeItem('jwt');
-    localStorage.removeItem('usuario');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('usuario');
+    }
     this.router.navigate(['/login']);
   }
 }

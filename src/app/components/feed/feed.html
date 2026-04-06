@@ -1,1 +1,43 @@
-<p>feed works!</p>
+<div class="feed-container">
+  @if (cargando) {
+    <p>Cargando...</p>
+  } @else if (error) {
+    <p>Error al cargar las publicaciones</p>
+  } @else if (publicaciones.length === 0) {
+    <p>No hay publicaciones</p>
+  } @else {
+    @for (publicacion of publicaciones; track publicacion.id) {
+      <div class="publicacion">
+
+        <div class="publicacion-header">
+          <img [src]="publicacion.usuario.fotoPerfil" alt="foto perfil"/>
+          <div>
+            <p>{{ publicacion.usuario.nombres }} {{ publicacion.usuario.apellidos }}</p>
+            <span>{{ publicacion.importancia }}</span>
+          </div>
+        </div>
+
+        <p class="publicacion-texto">{{ publicacion.texto }}</p>
+
+        @if (publicacion.multimedia.length > 0) {
+          <div class="publicacion-multimedia">
+            @for (media of publicacion.multimedia; track media.id) {
+              <img [src]="media.ruta" alt="multimedia"/>
+            }
+          </div>
+        }
+
+        <div class="publicacion-acciones">
+          <button (click)="darLike(publicacion)">
+            {{ publicacion.meGusta ? 'Me gusta' : 'Me gusta' }}
+            {{ publicacion.totalLikes }}
+          </button>
+          <button (click)="toggleComentarios(publicacion)">
+            Comentarios {{ publicacion.totalComentarios }}
+          </button>
+        </div>
+
+      </div>
+    }
+  }
+</div>
