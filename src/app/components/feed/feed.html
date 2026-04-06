@@ -1,4 +1,22 @@
 <div class="feed-container">
+
+  <div class="nueva-publicacion">
+    <textarea
+      [(ngModel)]="nuevaPublicacion.texto"
+      placeholder="¿Qué quieres compartir?"
+      rows="3">
+    </textarea>
+    <select [(ngModel)]="nuevaPublicacion.importancia">
+      <option value="PUBLICACION">Publicación</option>
+      <option value="AVISO">Aviso</option>
+      <option value="URGENTE">Urgente</option>
+    </select>
+    <input type="file" multiple (change)="onArchivosSeleccionados($event)" accept="image/*,video/*"/>
+    <button (click)="publicar()" [disabled]="publicando">
+      {{ publicando ? 'Publicando...' : 'Publicar' }}
+    </button>
+  </div>
+
   @if (cargando) {
     <p>Cargando...</p>
   } @else if (error) {
@@ -39,24 +57,24 @@
         @if (publicacion.comentariosAbiertos) {
           <div class="comentarios">
             @for (comentario of publicacion.comentarios; track comentario.id) {
-            <div class="comentario">
-              <img [src]="comentario.autorFoto" alt="foto"/>
-              <div>
-                <p>{{ comentario.autorNombre }}</p>
-                <p>{{ comentario.texto }}</p>
-                <button (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
-                @if (comentario.respondiendo) {
-                  <div class="respuesta">
-                    <input
-                      [(ngModel)]="comentario.textoRespuesta"
-                      placeholder="Escribe una respuesta..."
-                    />
-                    <button (click)="comentar(publicacion, comentario.id, comentario.textoRespuesta)">Enviar</button> 
-                  </div>
-                }
+              <div class="comentario">
+                <img [src]="comentario.autorFoto" alt="foto"/>
+                <div>
+                  <p>{{ comentario.autorNombre }}</p>
+                  <p>{{ comentario.texto }}</p>
+                  <button (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
+                  @if (comentario.respondiendo) {
+                    <div class="respuesta">
+                      <input
+                        [(ngModel)]="comentario.textoRespuesta"
+                        placeholder="Escribe una respuesta..."
+                      />
+                      <button (click)="comentar(publicacion, comentario.id, comentario.textoRespuesta)">Enviar</button>
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
-          }
+            }
             <div class="nuevo-comentario">
               <input
                 [(ngModel)]="publicacion.nuevoComentario"
