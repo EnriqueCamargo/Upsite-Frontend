@@ -46,4 +46,19 @@ export class PublicacionService {
   quitarLikeComentario(idComentario: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/publicaciones/comentarios/${idComentario}/like`);
   }
+
+  crear(texto: string, importancia: string, esGlobal: boolean): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/publicaciones`, {
+        texto,
+        importancia,
+        esGlobal,
+        idsGrupos: []
+    });
+}
+
+subirMultimedia(idPublicacion: number, archivo: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    return this.http.post<any>(`${this.apiUrl}/publicaciones/${idPublicacion}/multimedia`, formData);
+}
 }
