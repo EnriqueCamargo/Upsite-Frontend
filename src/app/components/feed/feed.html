@@ -40,7 +40,7 @@
         @if (publicacion.multimedia.length > 0) {
           <div class="publicacion-multimedia">
             @for (media of publicacion.multimedia; track media.id) {
-              <img [src]="media.ruta" alt="multimedia"/>
+              <img [src]="'http://localhost:8080' + media.ruta" alt="multimedia"/>
             }
           </div>
         }
