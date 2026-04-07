@@ -17,6 +17,8 @@ export interface Comentario {
   idPadre: number | null;
   respondiendo?: boolean;
   textoRespuesta?: string;
+  totalLikes: number;
+  meGusta: boolean;
 }
 
 export interface Publicacion {

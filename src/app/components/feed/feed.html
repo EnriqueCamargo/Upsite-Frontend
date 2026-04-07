@@ -62,6 +62,9 @@
                 <div>
                   <p>{{ comentario.autorNombre }}</p>
                   <p>{{ comentario.texto }}</p>
+                  <button (click)="toggleLikeComentario(publicacion, comentario)">
+                    {{ comentario.meGusta ? '❤️' : '🤍' }} {{ comentario.totalLikes }} 
+                  </button>                                                             
                   <button (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
                   @if (comentario.respondiendo) {
                     <div class="respuesta">

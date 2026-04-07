@@ -147,4 +147,23 @@ export class FeedComponent implements OnInit {
         }
     });
 }
+toggleLikeComentario(publicacion: Publicacion, comentario: any) {
+  if (comentario.meGusta) {
+    this.publicacionService.quitarLikeComentario(comentario.id).subscribe({
+      next: () => {
+        comentario.meGusta = false;
+        comentario.totalLikes--;
+        this.cdr.detectChanges();
+      }
+    });
+  } else {
+    this.publicacionService.darLikeComentario(comentario.id).subscribe({
+      next: () => {
+        comentario.meGusta = true;
+        comentario.totalLikes++;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
 }
