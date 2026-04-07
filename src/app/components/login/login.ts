@@ -21,7 +21,7 @@ export class LoginComponent {
     if (typeof window !== 'undefined') {
       const googleAuthConfig: AuthConfig = {
         issuer: 'https://accounts.google.com',
-        redirectUri: window.location.origin,
+        redirectUri: window.location.origin + '/login',
         clientId: environment.googleClientId,
         scope: 'openid profile email',
         strictDiscoveryDocumentValidation: false
