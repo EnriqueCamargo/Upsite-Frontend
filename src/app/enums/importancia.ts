@@ -1,0 +1,5 @@
+export enum Importancia {
+    PUBLICACION = 'PUBLICACION',
+    AVISO = 'AVISO',
+    AVISO_IMPORTANTE = 'AVISO_IMPORTANTE'
+}

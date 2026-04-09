@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment.development';
+import { Usuario, LoginResponse } from '../interfaces/usuario';
 
 @Injectable({
   providedIn: 'root'
@@ -15,13 +17,13 @@ export class AuthService {
     private router: Router
   ) {}
 
-  loginConGoogle(googleToken: string) {
-    return this.http.post<any>(`${this.apiUrl}/auth/google`, {
+  loginConGoogle(googleToken: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/google`, {
       token: googleToken
     });
   }
 
-  guardarSesion(token: string, usuario: any) {
+  guardarSesion(token: string, usuario: Usuario) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('jwt', token);
       localStorage.setItem('usuario', JSON.stringify(usuario));
@@ -35,10 +37,10 @@ export class AuthService {
     return null;
   }
 
-  getUsuario(): any {
+  getUsuario(): Usuario | null {
     if (typeof window !== 'undefined') {
       const usuario = localStorage.getItem('usuario');
-      return usuario ? JSON.parse(usuario) : null;
+      return usuario ? JSON.parse(usuario) as Usuario : null;
     }
     return null;
   }

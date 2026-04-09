@@ -3,6 +3,7 @@ import { OAuthService, AuthConfig } from 'angular-oauth2-oidc';
 import { AuthService } from '../../services/auth';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment.development';
+import { LoginResponse } from '../../interfaces/usuario';
 
 @Component({
   selector: 'app-login',
@@ -32,7 +33,7 @@ export class LoginComponent {
         const idToken = this.oauthService.getIdToken();
         if (idToken) {
           this.authService.loginConGoogle(idToken).subscribe({
-            next: (response) => {
+            next: (response: LoginResponse) => {
               this.authService.guardarSesion(response.token, response.usuario);
               this.router.navigate(['/feed']);
             },

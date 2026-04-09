@@ -1,9 +1,13 @@
 import { Usuario } from './usuario';
+import { Importancia } from '../enums/importancia';
+import { TipoMultimedia } from '../enums/tipo-multimedia';
+import { Carrera } from './carrera';
+import { Grupo } from './grupo';
 
 export interface MultimediaPublicacion {
   id: number;
   ruta: string;
-  tipo: string;
+  tipo: TipoMultimedia;
 }
 
 export interface Comentario {
@@ -15,21 +19,23 @@ export interface Comentario {
   matricula: string;
   idPublicacion: number;
   idPadre: number | null;
-  respondiendo?: boolean;
-  textoRespuesta?: string;
   totalLikes: number;
   meGusta: boolean;
+  respondiendo?: boolean;
+  textoRespuesta?: string;
 }
 
 export interface Publicacion {
   id: number;
   texto: string;
-  importancia: string;
+  importancia: Importancia;
   multimedia: MultimediaPublicacion[];
-  usuario: any;
+  usuario: Usuario;
   totalLikes: number;
   totalComentarios: number;
   meGusta: boolean;
+  targetCarreras: Carrera[];
+  targetGrupos: Grupo[];
   comentariosAbiertos?: boolean;
   comentarios?: Comentario[];
   nuevoComentario?: string;

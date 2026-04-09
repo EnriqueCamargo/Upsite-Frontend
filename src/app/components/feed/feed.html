@@ -1,95 +1,177 @@
 <div class="feed-container">
 
-  <!-- Aviso de moderación -->
-  @if (mensajeModeracion) {
-    <div class="moderacion-aviso">
-      <span>⚠️ {{ mensajeModeracion }}</span>
-      <button (click)="cerrarMensaje()">✕</button>
-    </div>
-  }
+  <!-- FILTROS DEL FEED -->
+  <div class="filtros-feed">
+    @if (!esEstudiante) {
+      <select [(ngModel)]="filtros.importancia" (change)="aplicarFiltros()">
+        <option [ngValue]="undefined">Todas las importancias</option>
+        <option value="PUBLICACION">Publicación</option>
+        <option value="AVISO">Aviso</option>
+        <option value="AVISO_IMPORTANTE">Urgente</option>
+      </select>
+      <select [(ngModel)]="filtros.carrera" (change)="aplicarFiltros()">
+        <option [ngValue]="undefined">Todas las carreras</option>
+        @for (carrera of carreras; track carrera.id) {
+          <option [value]="carrera.id">{{ carrera.nombre }}</option>
+        }
+      </select>
+    } @else {
+      <!-- Filtros para Estudiantes -->
+      <div class="filtros-estudiante">
+          <label>Ver:</label>
+          <select [(ngModel)]="filtros.scope" (change)="aplicarFiltros()">
+              <option value="GLOBAL">Globales</option>
+              <option value="CARRERA">Mi Carrera</option>
+              <option value="GRUPO">Mi Grupo</option>
+          </select>
+      </div>
+    }
+    <button (click)="aplicarFiltros()" class="btn-refresh">Refrescar</button>
+  </div>
 
+  <!-- CREAR PUBLICACIÓN -->
   <div class="nueva-publicacion">
     <textarea
       [(ngModel)]="nuevaPublicacion.texto"
       placeholder="¿Qué quieres compartir?"
       rows="3">
     </textarea>
-    <select [(ngModel)]="nuevaPublicacion.importancia">
-      <option value="PUBLICACION">Publicación</option>
-      <option value="AVISO">Aviso</option>
-      <option value="URGENTE">Urgente</option>
-    </select>
-    <input type="file" multiple (change)="onArchivosSeleccionados($event)" accept="image/*,video/*"/>
-    <button (click)="publicar()" [disabled]="publicando">
+    
+    <div class="opciones-publicacion">
+      @if (!esEstudiante) {
+        <select [(ngModel)]="nuevaPublicacion.importancia">
+          <option value="PUBLICACION">Publicación</option>
+          <option value="AVISO">Aviso</option>
+          <option value="AVISO_IMPORTANTE">Urgente</option>
+        </select>
+
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="nuevaPublicacion.esGlobal" />
+          Global
+        </label>
+
+        @if (!nuevaPublicacion.esGlobal) {
+          <div class="targeting-opciones">
+            <p><strong>Selecciona Carreras:</strong></p>
+            <div class="checkbox-grid">
+                @for (carrera of carreras; track carrera.id) {
+                    <label class="checkbox-item">
+                        <input type="checkbox" 
+                               [checked]="nuevaPublicacion.idsCarreras.includes(carrera.id)"
+                               (change)="toggleCarrera(carrera.id)" />
+                        {{ carrera.nombre }}
+                    </label>
+                }
+            </div>
+
+            @if (gruposDisponibles.length > 0) {
+              <p><strong>Selecciona Grupos (Opcional):</strong></p>
+              <div class="checkbox-grid">
+                @for (grupo of gruposDisponibles; track grupo.id) {
+                  <label class="checkbox-item">
+                    <input type="checkbox"
+                           [checked]="nuevaPublicacion.idsGrupos.includes(grupo.id)"
+                           (change)="toggleGrupo(grupo.id)" />
+                    {{ grupo.nombre }} ({{ grupo.nombreCarrera }})
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        }
+      } @else {
+        <span class="estudiante-badge">Publicación Estándar (Global)</span>
+      }
+    </div>
+
+    <div class="multimedia-input">
+        <input type="file" multiple (change)="onArchivosSeleccionados($event)" [accept]="esEstudiante ? 'image/*' : 'image/*,video/*'"/>
+    </div>
+    
+    <button class="btn-publicar" (click)="publicar()" [disabled]="publicando || !nuevaPublicacion.texto.trim()">
       {{ publicando ? 'Publicando...' : 'Publicar' }}
     </button>
   </div>
 
-  @if (cargando) {
-    <p>Cargando...</p>
-  } @else if (error) {
-    <p>Error al cargar las publicaciones</p>
-  } @else if (publicaciones.length === 0) {
-    <p>No hay publicaciones</p>
+  <!-- LISTA DE PUBLICACIONES -->
+  @if (cargando && pagina === 0) {
+    <div class="loading">Cargando feed...</div>
+  } @else if (error && publicaciones.length === 0) {
+    <div class="error">Error al cargar las publicaciones</div>
+  } @else if (publicaciones.length === 0 && !cargando) {
+    <div class="empty">No hay publicaciones para mostrar</div>
   } @else {
     @for (publicacion of publicaciones; track publicacion.id) {
       <div class="publicacion">
 
         <div class="publicacion-header">
-          <img [src]="publicacion.usuario.fotoPerfil" alt="foto"/>
-          <div>
-            <p>{{ publicacion.usuario.nombres }} {{ publicacion.usuario.apellidos }}</p>
-            <span>{{ publicacion.importancia }}</span>
+          <img [src]="publicacion.usuario.fotoPerfil || 'https://via.placeholder.com/40'" alt="foto"/>
+          <div class="header-info">
+            <p class="autor-nombre">{{ publicacion.usuario.nombres }} {{ publicacion.usuario.apellidos }}</p>
+            <div class="badges">
+                <span class="importancia-badge" [class]="publicacion.importancia">{{ publicacion.importancia }}</span>
+                @if (publicacion.targetCarreras.length > 0) {
+                    <span class="target-info">
+                      Para: @for (c of publicacion.targetCarreras; track c.id) { {{ c.nombre }}{{ $last ? '' : ', ' }} }
+                    </span>
+                } @else {
+                    <span class="target-info global">Global</span>
+                }
+            </div>
           </div>
         </div>
 
         <p class="publicacion-texto">{{ publicacion.texto }}</p>
 
-        @if (publicacion.multimedia.length > 0) {
+        @if (publicacion.multimedia && publicacion.multimedia.length > 0) {
           <div class="publicacion-multimedia">
             @for (media of publicacion.multimedia; track media.id) {
-              <img [src]="media.ruta" alt="multimedia"/>
+              @if (media.tipo === 'IMAGE') {
+                <img [src]="media.ruta" alt="multimedia" class="media-item"/>
+              } @else if (media.tipo === 'VIDEO') {
+                <video [src]="media.ruta" controls class="media-item"></video>
+              }
             }
           </div>
         }
 
         <div class="publicacion-acciones">
-          <button (click)="toggleLike(publicacion)">
+          <button class="accion-btn" (click)="toggleLike(publicacion)">
             {{ publicacion.meGusta ? '❤️' : '🤍' }} {{ publicacion.totalLikes }}
           </button>
-          <button (click)="toggleComentarios(publicacion)">
+          <button class="accion-btn" (click)="toggleComentarios(publicacion)">
             💬 {{ publicacion.totalComentarios }}
           </button>
         </div>
 
         @if (publicacion.comentariosAbiertos) {
-          <div class="comentarios">
-            @for (comentario of publicacion.comentarios; track comentario.id) {
-              <div class="comentario">
-                <img [src]="comentario.autorFoto" alt="foto"/>
-                <div>
-                  <p>{{ comentario.autorNombre }}</p>
-                  <p>{{ comentario.texto }}</p>
-                  <button (click)="toggleLikeComentario(publicacion, comentario)">
-                    {{ comentario.meGusta ? '❤️' : '🤍' }} {{ comentario.totalLikes }}
-                  </button>
-                  <button (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
-                  @if (comentario.respondiendo) {
-                    <div class="respuesta">
-                      <input
-                        [(ngModel)]="comentario.textoRespuesta"
-                        placeholder="Escribe una respuesta..."
-                      />
-                      <button (click)="comentar(publicacion, comentario.id, comentario.textoRespuesta)">Enviar</button>
+          <div class="comentarios-section">
+            @if (publicacion.comentarios && publicacion.comentarios.length > 0) {
+                @for (comentario of publicacion.comentarios; track comentario.id) {
+                <div class="comentario">
+                    <img [src]="comentario.autorFoto || 'https://via.placeholder.com/30'" alt="foto"/>
+                    <div class="comentario-body">
+                    <p class="comentario-autor">{{ comentario.autorNombre }}</p>
+                    <p class="comentario-texto">{{ comentario.texto }}</p>
+                    <button class="reply-btn" (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
+                    @if (comentario.respondiendo) {
+                        <div class="respuesta-input">
+                        <input
+                            [(ngModel)]="comentario.textoRespuesta"
+                            placeholder="Escribe una respuesta..."
+                        />
+                        <button (click)="comentar(publicacion, comentario.id, comentario.textoRespuesta)">Enviar</button>
+                        </div>
+                    }
                     </div>
-                  }
                 </div>
-              </div>
+                }
             }
             <div class="nuevo-comentario">
               <input
                 [(ngModel)]="publicacion.nuevoComentario"
                 placeholder="Escribe un comentario..."
+                (keyup.enter)="comentar(publicacion)"
               />
               <button (click)="comentar(publicacion)">Enviar</button>
             </div>
@@ -97,6 +179,14 @@
         }
 
       </div>
+    }
+    
+    @if (cargandoMas) {
+        <div class="loading-more">Cargando más publicaciones...</div>
+    }
+    
+    @if (!hayMas && publicaciones.length > 0) {
+        <div class="no-more">No hay más publicaciones por cargar</div>
     }
   }
 </div>

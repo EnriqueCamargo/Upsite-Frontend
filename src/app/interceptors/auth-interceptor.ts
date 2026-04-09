@@ -3,13 +3,14 @@ import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment.development';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const token = authService.getToken();
 
-  if (token && req.url.startsWith('http://localhost:8080')) {
+  if (token && req.url.startsWith(environment.apiUrl)) {
     req = req.clone({
       headers: req.headers.set('Authorization', `Bearer ${token}`)
     });

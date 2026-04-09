@@ -1,1 +1,55 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+    --blue-dark: #002d85;
+    --blue-light: #1a56db;
+    --bg-gray: #e5e7eb;
+    --white: #ffffff;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: var(--bg-gray);
+}
+
+app-root {
+    display: block;
+    width: 100%;
+    max-width: 1200px; /* Opcional, para no estirarse demasiado en pantallas ultra anchas */
+}
+
+.barralateral {
+    width: 250px;
+    background-color: var(--blue-dark);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.linkspantallas {
+    list-style: none;
+    padding: 0;
+    margin-top: 40px;
+    flex-grow: 1;
+}
+
+.linkspantallas li a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.linkspantallas li a.active {
+    background-color: var(--blue-light);
+}
+
+.user-profile {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 20px;
+}/* You can add global styles to this file, and also import other style files */
