@@ -1,5 +1,13 @@
 <div class="feed-container">
 
+  <!-- Aviso de moderación -->
+  @if (mensajeModeracion) {
+    <div class="moderacion-aviso">
+      <span>⚠️ {{ mensajeModeracion }}</span>
+      <button (click)="cerrarMensaje()">✕</button>
+    </div>
+  }
+
   <div class="nueva-publicacion">
     <textarea
       [(ngModel)]="nuevaPublicacion.texto"
@@ -63,8 +71,8 @@
                   <p>{{ comentario.autorNombre }}</p>
                   <p>{{ comentario.texto }}</p>
                   <button (click)="toggleLikeComentario(publicacion, comentario)">
-                    {{ comentario.meGusta ? '❤️' : '🤍' }} {{ comentario.totalLikes }} 
-                  </button>                                                             
+                    {{ comentario.meGusta ? '❤️' : '🤍' }} {{ comentario.totalLikes }}
+                  </button>
                   <button (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
                   @if (comentario.respondiendo) {
                     <div class="respuesta">

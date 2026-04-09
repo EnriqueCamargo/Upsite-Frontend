@@ -19,6 +19,7 @@ export class FeedComponent implements OnInit {
   error = false;
   publicando = false;
   archivosSeleccionados: File[] = [];
+  mensajeModeracion: string | null = null;
 
   nuevaPublicacion = {
     texto: '',
@@ -120,50 +121,72 @@ export class FeedComponent implements OnInit {
     this.archivosSeleccionados = Array.from(event.target.files);
   }
 
+  cerrarMensaje() {
+    this.mensajeModeracion = null;
+  }
+
   async publicar() {
     if (!this.nuevaPublicacion.texto.trim()) return;
     this.publicando = true;
+    this.mensajeModeracion = null;
 
-    this.publicacionService.crear(
+    try {
+      const imagenesUrl: string[] = [];
+      for (const archivo of this.archivosSeleccionados) {
+        const url = await this.supabaseService.subirArchivo(archivo);
+        imagenesUrl.push(url);
+      }
+
+      this.publicacionService.crear(
         this.nuevaPublicacion.texto,
         this.nuevaPublicacion.importancia,
-        this.nuevaPublicacion.esGlobal
-    ).subscribe({
-        next: async (publicacion) => {
-            if (this.archivosSeleccionados.length > 0) {
-                for (const archivo of this.archivosSeleccionados) {
-                    const url = await this.supabaseService.subirArchivo(archivo);
-                    await this.publicacionService.subirMultimedia(publicacion.id, url, archivo.type).toPromise();
-                }
-            }
-            this.nuevaPublicacion.texto = '';
-            this.archivosSeleccionados = [];
-            this.publicando = false;
-            this.cargarFeed();
+        this.nuevaPublicacion.esGlobal,
+        imagenesUrl
+      ).subscribe({
+        next: () => {
+          this.nuevaPublicacion.texto = '';
+          this.archivosSeleccionados = [];
+          this.publicando = false;
+          this.cargarFeed();
+          this.cdr.detectChanges();
         },
         error: (err) => {
+          this.publicando = false;
+          if (err.status === 400 && err.error?.message) {
+            this.mensajeModeracion = err.error.message;
+            this.nuevaPublicacion.texto = '';
+            this.archivosSeleccionados = [];
+            this.cargarFeed(); // recarga para reflejar que se guardó pero está oculta
+          } else {
             console.error('Error al publicar', err);
-            this.publicando = false;
+          }
+          this.cdr.detectChanges();
         }
-    });
-}
-toggleLikeComentario(publicacion: Publicacion, comentario: any) {
-  if (comentario.meGusta) {
-    this.publicacionService.quitarLikeComentario(comentario.id).subscribe({
-      next: () => {
-        comentario.meGusta = false;
-        comentario.totalLikes--;
-        this.cdr.detectChanges();
-      }
-    });
-  } else {
-    this.publicacionService.darLikeComentario(comentario.id).subscribe({
-      next: () => {
-        comentario.meGusta = true;
-        comentario.totalLikes++;
-        this.cdr.detectChanges();
-      }
-    });
+      });
+    } catch (err) {
+      console.error('Error al subir imágenes', err);
+      this.publicando = false;
+      this.cdr.detectChanges();
+    }
   }
-}
+
+  toggleLikeComentario(publicacion: Publicacion, comentario: any) {
+    if (comentario.meGusta) {
+      this.publicacionService.quitarLikeComentario(comentario.id).subscribe({
+        next: () => {
+          comentario.meGusta = false;
+          comentario.totalLikes--;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.publicacionService.darLikeComentario(comentario.id).subscribe({
+        next: () => {
+          comentario.meGusta = true;
+          comentario.totalLikes++;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
 }

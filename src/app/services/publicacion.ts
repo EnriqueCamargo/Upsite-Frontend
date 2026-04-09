@@ -47,12 +47,19 @@ export class PublicacionService {
     return this.http.delete<void>(`${this.apiUrl}/publicaciones/comentarios/${idComentario}/like`);
   }
 
-  crear(texto: string, importancia: string, esGlobal: boolean): Observable<any> {
+  crear(texto: string, importancia: string, esGlobal: boolean, imagenesUrl: string[] = []): Observable<any> {
+    const multimedia = imagenesUrl.map(url => ({
+        ruta: url,
+        tipoMultimedia: 'IMAGE',
+        idPublicacion: 0  // El backend lo ignora, usa el id de la publicación creada
+    }));
+
     return this.http.post<any>(`${this.apiUrl}/publicaciones`, {
         texto,
         importancia,
         esGlobal,
-        idsGrupos: []
+        idsGrupos: [],
+        multimedia
     });
 }
 
