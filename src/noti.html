@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notificaciones-Upsite</title>
+    <title>Notificaciones - Upsite</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -25,10 +25,52 @@
         </ul>
     
         <div class="perfilusuario">
-                <div class="user-info">
-                    <p class="user-name">Nombre Usuario</p>
-                    <p class="user-specialty">Ing. Tecnologías de la Información</p>
-                    <button class="btn-logout">Cerrar sesión</button>
-                </div>
+            <div class="user-info">
+                <p class="user-name">Nombre Usuario</p>
+                <p class="user-specialty">Ing. Tecnologías de la Información</p>
+                <button class="btn-logout">Cerrar sesión</button>
+            </div>
         </div>
     </nav>
+
+    <main class="main-content">
+        <div class="notifications-card">
+            <header class="card-header">
+                <h2>Notificaciones</h2>
+            </header>
+
+            <div class="notifications-list">
+                
+                <div class="notification-item alert">
+                    <div class="notif-icon-container">
+                        <div class="warning-circle">!</div>
+                    </div>
+                    <div class="notif-text">
+                        <p>¡10 denuncias en esta publicación!</p>
+                    </div>
+                    <div class="notif-media-preview">
+                        <span>imagen/video</span>
+                    </div>
+                </div>
+
+                <div class="notification-item alert">
+                    <div class="notif-icon-container">
+                        <div class="warning-circle">!</div>
+                    </div>
+                    <div class="notif-text">
+                        <p>¡20 Denuncias a este usuario!</p>
+                    </div>
+                    <div class="notif-avatar-preview">👤</div>
+                </div>
+
+                <div class="notification-item follow">
+                    <div class="notif-avatar">
+                        <img src="imagenes/default-user.png" alt="User">
+                    </div>
+                    <div class="notif-text">
+                        <p><strong>Nombre @nombre</strong> comenzó a seguirte</p>
+                    </div>
+                    <div class="notif-media-preview tilt-right">
+                        <span>imagen/video</span>
+                    </div>
+                </div>

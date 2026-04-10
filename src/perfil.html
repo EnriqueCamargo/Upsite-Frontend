@@ -38,6 +38,15 @@
             <div class="profile-header">
                 <div class="profile-avatar">
                     <img src="imagenes/fotodeperfil.webp" alt="Foto de perfil">
+                    <div class="admin-container">
+                    <button class="btn-dots" onclick="toggleMenu()">⋮</button>
+                    
+                    <div id="adminMenu" class="dropdown-content">
+                        <a href="#" class="danger">Eliminar usuario</a>
+                        <a href="#" class="danger">Vetar usuario</a>
+                        <a href="#">Cambiar estatus</a>
+                    </div>
+                </div>
                 </div>
                 <div class="profile-info">
                     <h2>Nombre Apellido</h2>
@@ -58,5 +67,37 @@
             <div class="profile-feed">
                 </div>
         </div>
+
+        <div class="profile-feed">
+                <div class="post-card">
+                    <p class="post-text">Éxito a todos los Ingenieros que van a entrevista a Pinsa que Dios les de Claridad y salgan exitosos 🙂👍</p>
+                    <div class="post-media-placeholder">
+                        <p>Imagen / Video</p>
+                    </div>
+                    <div class="post-actions">
+                        <button class="btn-react pink">🩷 688</button>
+                        <button class="btn-react blue">💎 24</button>
+                    </div>
+                </div>
+            </div>    
     </main>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("adminMenu").classList.toggle("show");
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.btn-dots')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
 </body>
+</html>
