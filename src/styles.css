@@ -162,3 +162,126 @@ body {
     color: red;
     font-weight: bold;
 }
+
+/*perfil*/
+
+.admin-controls {
+    position: relative;
+    float: right;
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: none;
+    z-index: 10;
+    min-width: 150px;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.dropdown-menu a.danger {
+    color: #ff4d4d;
+}
+
+.admin-controls:hover .dropdown-menu {
+    display: block;
+}
+
+.barralateral {
+    width: 260px;
+    min-width: 260px;
+    background-color: #002d85;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.profile-feed {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.post-card {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    padding: 15px;
+}
+
+.post-media img {
+    width: 100%;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.profile-banner {
+    height: 150px;
+    width: 100%;
+}
+
+.profile-avatar {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 5px solid white;
+    overflow: hidden;
+    margin-top: -65px;
+    margin-left: 20px;
+    background-color: #ccc;
+    position: relative;
+    z-index: 2;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-specialty {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-bottom: 10px;
+}
+
+.profile-info-container {
+    padding: 20px;
+    text-align: left;
+}
+
+.name-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0;
+}
+
+.username {
+    color: #666;
+    margin-bottom: 15px;
+}
