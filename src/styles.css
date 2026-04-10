@@ -1,3 +1,9 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 :root {
     --blue-dark: #002d85;
     --blue-light: #1a56db;
@@ -14,12 +20,54 @@ body {
 }
 
 .barralateral {
-    width: 250px;
-    background-color: var(--blue-dark);
-    color: white;
+    width: 260px;
+    background-color: #002d85;
+    height: 100vh;/
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     padding: 20px;
+    position: sticky;
+    top: 0;
+}
+
+.main-content {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    background-color: #e5e7eb;
+    padding: 40px;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.logo-bg {
+    background-color: white;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.logo-bg img {
+    width: 80%;
+    height: auto;
+}
+
+.brand-title {
+    color: white;
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: bold;
 }
 
 .linkspantallas {
@@ -42,7 +90,75 @@ body {
     background-color: var(--blue-light);
 }
 
-.user-profile {
+.perfilusuario {
     border-top: 1px solid rgba(255,255,255,0.1);
     padding-top: 20px;
-}/* You can add global styles to this file, and also import other style files */
+    color: white;
+}
+
+.btn-logout {
+    background-color: #f3f4f6;
+    color: #002d85;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+    font-weight: bold;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.card {
+    background: var(--white);
+    width: 100%;
+    max-width: 800px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    text-align: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    color: #666;
+}
+
+.accordion-header {
+    width: 100%;
+    padding: 20px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+.accordion-header:hover { background: #f9fafb; }
+
+.accordion-body {
+    display: none;
+    background: #f3f4f6;
+    padding: 10px 20px;
+}
+
+.item-list {
+    background: white;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    color: red;
+    font-weight: bold;
+}

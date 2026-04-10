@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denuncias</title>
+    <title>Denuncias-Upsite</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <nav class="barralateral">
-        <div class="logo-section">
-            <div class="logo-placeholder">UPSIN</div>
-            <h1>UPSITE</h1>
+        <div class="logo-container">
+            <div class="logo-bg">
+                <img src="imagenes/Logo_UPSIN_y_LETRAS-vertical.png" alt="Logo UPSIN">
+            </div>
+            <h1 class="brand-title">UPSITE</h1>
         </div>
 
         <ul class="linkspantallas">
@@ -23,18 +25,51 @@
         </ul>
     
         <div class="perfilusuario">
-            <div class="avatar"></div>
                 <div class="user-info">
                     <p class="user-name">Nombre Usuario</p>
-                    <p class="user-role">Ing. Tecnologías...</p>
+                    <p class="user-specialty">Ing. Tecnologías de la Información</p>
+                    <button class="btn-logout">Cerrar sesión</button>
                 </div>
-            <button class="btn-logout">Cerrar sesión</button>
         </div>
     </nav>
 
+    <main class="content">
+        <div class="card">
+            <header class="card-header">
+                <h2>Denuncias</h2>
+            </header>
 
+            <div class="accordion">
+                <div class="accordion-item">
+                    <button class="accordion-header" onclick="toggleAccordion('publicaciones')">
+                        <span>1. Publicaciones Denunciadas</span>
+                        <span class="badge red">2</span>
+                    </button>
+                    <div id="publicaciones" class="accordion-body">
+                        <div class="item-list">
+                            <p>¡7 Denuncias! <span class="label">Publicación</span></p>
+                        </div>
+                        <div class="item-list">
+                            <p>¡8 Denuncias! <span class="label">Publicación</span></p>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="accordion-item">
+                    <button class="accordion-header" onclick="toggleAccordion('usuarios')">
+                        <span>2. Usuarios Denunciados</span>
+                        <span class="badge red">1</span>
+                    </button>
+                    <div id="usuarios" class="accordion-body">
+                        <div class="item-list">
+                            <p>¡8 Denuncias! <span class="label">Usuario</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <h2>Denuncias</h2>
+    <script src="script.js"></script>
 </body>
 </html>
