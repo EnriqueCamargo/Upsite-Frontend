@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>UPSITE - Perfil</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img src="https://upsin.edu.mx/wp-content/uploads/2024/12/Logo_UPSIN_y_LETRAS-vertical.png" class="logo-img" alt="Logo UPSIN">
+            </div>
+            <div class="brand-title">UPSITE</div>
+            <nav class="menu">
+                <a href="home.html"><div class="item">Inicio</div></a>
+                <a href="profile.html"><div class="item active">Perfil</div></a>
+                <a href="#"><div class="item">Explorar</div></a>
+                <a href="#"><div class="item">Notificaciones</div></a>
+            </nav>
+            <div class="user-footer">
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div class="mini-avatar"></div>
+                    <div>
+                        <div style="font-size:11px; font-weight:bold;">usuario pilin</div>
+                        <div style="font-size:10px; opacity:0.8;">Ing. Software</div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="location.href='login.html'">Cerrar sesión</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="profile-header">
+                <div class="profile-banner"></div>
+                <div class="profile-info-row">
+                    <div class="avatar-large"></div>
+                    <div class="profile-details">
+                        <h1>Nombre de Usuario</h1>
+                        <p>@usuario_pilin</p>
+                    </div>
+                </div>
+
+                <div class="profile-bio">
+                    <strong>Estudiante | Ingeniería en Software</strong>
+                    <p style="margin-top: 10px; color: #444;">Apasionado por el desarrollo web y la innovación digital en la UPSIN.</p>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item"><strong>237</strong> Siguiendo</div>
+                    <div class="stat-item"><strong>3,134</strong> Seguidores</div>
+                    <div class="stat-item"><strong>17</strong> Publicaciones</div>
+                </div>
+            </div>
+
+            <div class="card-container">
+                <div class="post-header">
+                    <div class="mini-avatar" style="background:#ccc;"></div>
+                    <div>
+                        <strong>usuario pilin</strong>
+                        <div style="font-size:12px; color:#777;">Hace 2 días</div>
+                    </div>
+                </div>
+                <p class="post-text">Preparando el proyecto final de base de datos. ¡A darle! 💻🔥</p>
+                <div class="media-box">Imagen / Video</div>
+                <div class="reactions">
+                    <button class="reac-btn" style="background:#ffdada;">🩷 124</button>
+                    <button class="reac-btn" style="background:#d0e1ff;">📂 5</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
