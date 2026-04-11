@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment.development';
 import { Usuario, LoginResponse } from '../interfaces/usuario';
+import { OAuthService } from 'angular-oauth2-oidc';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ import { Usuario, LoginResponse } from '../interfaces/usuario';
 export class AuthService {
 
   private apiUrl = environment.apiUrl;
+  private oauthService = inject(OAuthService);
 
   constructor(
     private http: HttpClient,
@@ -53,6 +55,8 @@ export class AuthService {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('jwt');
       localStorage.removeItem('usuario');
+      // También limpiar la sesión del proveedor OIDC (Google) para evitar auto-login inmediato
+      this.oauthService.logOut();
     }
     this.router.navigate(['/login']);
   }

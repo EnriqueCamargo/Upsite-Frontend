@@ -30,6 +30,10 @@ export class PublicacionService {
     return this.http.get<Publicacion[]>(`${this.apiUrl}/publicaciones/feed`, { params });
   }
 
+  getPublicacionesUsuario(usuarioId: number): Observable<Publicacion[]> {
+    return this.http.get<Publicacion[]>(`${this.apiUrl}/publicaciones/autor/${usuarioId}`);
+  }
+
   darLike(idPublicacion: number): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/publicaciones/${idPublicacion}/like`, {});
   }

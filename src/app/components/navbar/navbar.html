@@ -1,0 +1,34 @@
+<nav class="side-navbar" *ngIf="isLoggedIn()">
+  <div class="logo">
+    <h1>Upsite</h1>
+  </div>
+  <ul class="nav-links">
+    <li>
+      <a routerLink="/feed" routerLinkActive="active">
+        <span class="icon">🏠</span>
+        <span class="label">Feed</span>
+      </a>
+    </li>
+    <li>
+      <a routerLink="/perfil" routerLinkActive="active">
+        <span class="icon">👤</span>
+        <span class="label">Perfil</span>
+      </a>
+    </li>
+  </ul>
+  <div class="nav-footer">
+    <div class="logout-wrapper">
+      <div class="confirm-tooltip" *ngIf="mostrarConfirmacion">
+        <p>¿Cerrar sesión?</p>
+        <div class="tooltip-actions">
+          <button (click)="confirmarLogout()" class="btn-si">Sí</button>
+          <button (click)="cancelarLogout()" class="btn-no">No</button>
+        </div>
+      </div>
+      <button (click)="toggleConfirmacion()" class="logout-btn" [class.active]="mostrarConfirmacion">
+        <span class="icon">🚪</span>
+        <span class="label">Cerrar Sesión</span>
+      </button>
+    </div>
+  </div>
+</nav>

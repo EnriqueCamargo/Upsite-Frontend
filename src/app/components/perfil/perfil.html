@@ -1,0 +1,57 @@
+<div class="perfil-container">
+  <div class="perfil-header">
+    <div class="portada"></div>
+    <div class="perfil-info">
+      <div class="foto-perfil">
+        <img [src]="usuario?.fotoPerfil || 'assets/default-avatar.png'" alt="Foto de perfil">
+      </div>
+      <div class="datos-usuario">
+        <h2 class="nombre-completo">{{ usuario?.nombres }} {{ usuario?.apellidos }}</h2>
+        <div class="descripcion">
+          <p><strong>Carrera:</strong> {{ usuario?.carrera || 'No asignada' }}</p>
+          <p><strong>Grupo:</strong> {{ usuario?.grupo || 'No asignado' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="publicaciones-container">
+    <h3>Mis Publicaciones</h3>
+    <div *ngIf="publicaciones.length === 0" class="no-publicaciones">
+      Aún no has hecho ninguna publicación.
+    </div>
+    
+    <div class="feed">
+      <div class="publicacion" *ngFor="let post of publicaciones">
+        <div class="post-header">
+          <img [src]="post.usuario.fotoPerfil" alt="Avatar" class="post-avatar">
+          <div class="post-info">
+            <div class="autor-y-tiempo">
+              <span class="post-author">{{ post.usuario.nombres }} {{ post.usuario.apellidos }}</span>
+              <span class="separador">•</span>
+              <span class="tiempo-publicado">{{ post.fechaPublicacion | relativeTime }}</span>
+            </div>
+            <span class="post-meta">{{ post.importancia }}</span>
+          </div>
+        </div>
+        <div class="post-content">
+          <p>{{ post.texto }}</p>
+          <div class="post-multimedia" *ngIf="post.multimedia && post.multimedia.length > 0">
+            <div *ngFor="let media of post.multimedia">
+              <img *ngIf="media.tipo === 'IMAGE'" [src]="media.ruta" alt="Multimedia">
+              <video *ngIf="media.tipo === 'VIDEO'" [src]="media.ruta" controls></video>
+            </div>
+          </div>
+        </div>
+        <div class="post-actions">
+          <button (click)="darLike(post)" [class.liked]="post.meGusta" class="accion-btn">
+            {{ post.meGusta ? '❤️' : '🤍' }} {{ post.totalLikes }}
+          </button>
+          <button class="accion-btn">
+            <span class="icon">💬</span> {{ post.totalComentarios }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

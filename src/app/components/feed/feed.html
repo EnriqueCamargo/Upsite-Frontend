@@ -107,7 +107,11 @@
         <div class="publicacion-header">
           <img [src]="publicacion.usuario.fotoPerfil || 'https://via.placeholder.com/40'" alt="foto"/>
           <div class="header-info">
-            <p class="autor-nombre">{{ publicacion.usuario.nombres }} {{ publicacion.usuario.apellidos }}</p>
+            <div class="autor-y-tiempo">
+                <p class="autor-nombre">{{ publicacion.usuario.nombres }} {{ publicacion.usuario.apellidos }}</p>
+                <span class="separador">•</span>
+                <span class="tiempo-publicado">{{ publicacion.fechaPublicacion | relativeTime }}</span>
+            </div>
             <div class="badges">
                 <span class="importancia-badge" [class]="publicacion.importancia">{{ publicacion.importancia }}</span>
                 @if (publicacion.targetCarreras.length > 0) {

@@ -36,6 +36,7 @@ export interface Publicacion {
   meGusta: boolean;
   targetCarreras: Carrera[];
   targetGrupos: Grupo[];
+  fechaPublicacion: string;
   comentariosAbiertos?: boolean;
   comentarios?: Comentario[];
   nuevoComentario?: string;
