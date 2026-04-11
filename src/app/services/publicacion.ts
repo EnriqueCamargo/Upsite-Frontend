@@ -1,11 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Publicacion, Comentario } from '../interfaces/publicacion';
+import { Observable, of, tap } from 'rxjs';
+import { Publicacion } from '../interfaces/publicacion';
 import { environment } from '../../environments/environment.development';
 import { Importancia } from '../enums/importancia';
 import { TipoMultimedia } from '../enums/tipo-multimedia';
 import { AuthService } from './auth';
+
+interface CachePerfil {
+  publicaciones: Publicacion[];
+  pagina: number;
+  hayMas: boolean;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -13,11 +19,11 @@ import { AuthService } from './auth';
 export class PublicacionService {
 
   private apiUrl = environment.apiUrl;
+  private authService = inject(AuthService);
+  private http = inject(HttpClient);
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) {}
+  // Caché para perfiles: ID Usuario -> Datos de publicaciones
+  private cachePerfiles = new Map<number, CachePerfil>();
 
   getFeed(carrera?: number, importancia?: Importancia, esGlobal?: boolean, grupo?: number, page: number = 0, size: number = 10): Observable<Publicacion[]> {
     let params = new HttpParams();
@@ -30,8 +36,43 @@ export class PublicacionService {
     return this.http.get<Publicacion[]>(`${this.apiUrl}/publicaciones/feed`, { params });
   }
 
-  getPublicacionesUsuario(usuarioId: number): Observable<Publicacion[]> {
-    return this.http.get<Publicacion[]>(`${this.apiUrl}/publicaciones/autor/${usuarioId}`);
+  getPublicacionesUsuario(usuarioId: number, page: number = 0, size: number = 10, forceRefresh: boolean = false): Observable<Publicacion[]> {
+    // Si es la página 0 y no forzamos refresco, intentamos sacar de caché
+    if (page === 0 && !forceRefresh && this.cachePerfiles.has(usuarioId)) {
+      return of(this.cachePerfiles.get(usuarioId)!.publicaciones);
+    }
+
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    
+    return this.http.get<Publicacion[]>(`${this.apiUrl}/publicaciones/autor/${usuarioId}`, { params }).pipe(
+      tap((data: Publicacion[]) => {
+        if (page === 0) {
+          // Guardar primera página en caché
+          this.cachePerfiles.set(usuarioId, {
+            publicaciones: data,
+            pagina: 1,
+            hayMas: data.length === size
+          });
+        }
+      })
+    );
+  }
+
+  // Método para obtener el estado de la caché de un perfil
+  getCachedPerfil(usuarioId: number): CachePerfil | undefined {
+    return this.cachePerfiles.get(usuarioId);
+  }
+
+  // Actualizar la caché tras cargar más (scroll infinito)
+  updateCachedPerfil(usuarioId: number, publicaciones: Publicacion[], pagina: number, hayMas: boolean) {
+    this.cachePerfiles.set(usuarioId, { publicaciones, pagina, hayMas });
+  }
+
+  // Limpiar caché de un perfil (útil tras crear una nueva publicación)
+  clearCachePerfil(usuarioId: number) {
+    this.cachePerfiles.delete(usuarioId);
   }
 
   darLike(idPublicacion: number): Observable<void> {
@@ -42,23 +83,15 @@ export class PublicacionService {
     return this.http.delete<void>(`${this.apiUrl}/publicaciones/${idPublicacion}/like`);
   }
 
-  getComentarios(idPublicacion: number): Observable<Comentario[]> {
-    return this.http.get<Comentario[]>(`${this.apiUrl}/publicaciones/${idPublicacion}/comentarios`);
+  getComentarios(idPublicacion: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/publicaciones/${idPublicacion}/comentarios`);
   }
 
-  comentar(idPublicacion: number, texto: string, idPadre?: number): Observable<Comentario> {
-    return this.http.post<Comentario>(`${this.apiUrl}/publicaciones/${idPublicacion}/comentarios`, {
+  comentar(idPublicacion: number, texto: string, idPadre?: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/publicaciones/${idPublicacion}/comentarios`, {
       texto,
       idPadre: idPadre ?? null
     });
-  }
-
-  darLikeComentario(idComentario: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/publicaciones/comentarios/${idComentario}/like`, {});
-  }
-
-  quitarLikeComentario(idComentario: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/publicaciones/comentarios/${idComentario}/like`);
   }
 
   crear(texto: string, importancia: Importancia, esGlobal: boolean, idsCarreras: number[] = [], idsGrupos: number[] = []): Observable<Publicacion> {
@@ -71,14 +104,18 @@ export class PublicacionService {
         idsCarreras: idsCarreras,
         idsGrupos: idsGrupos,
         multimedia: []
-    });
-}
+    }).pipe(
+      tap(() => {
+        if (usuario) this.clearCachePerfil(usuario.id);
+      })
+    );
+  }
 
-subirMultimedia(idPublicacion: number, url: string, tipo: string): Observable<any> {
+  subirMultimedia(idPublicacion: number, url: string, tipo: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/publicaciones/${idPublicacion}/multimedia`, {
         ruta: url,
         tipoMultimedia: tipo.startsWith('image') ? TipoMultimedia.IMAGE : TipoMultimedia.VIDEO,
         idPublicacion: idPublicacion
     });
-}
+  }
 }

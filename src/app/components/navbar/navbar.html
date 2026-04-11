@@ -2,6 +2,34 @@
   <div class="logo">
     <h1>Upsite</h1>
   </div>
+
+  <div class="search-container">
+    <div class="search-input-wrapper">
+      <input 
+        type="text" 
+        [(ngModel)]="searchText" 
+        (ngModelChange)="onSearchChange()" 
+        placeholder="Buscar usuarios..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    
+    <div class="search-results" *ngIf="mostrarResultados">
+      <div 
+        class="search-item" 
+        *ngFor="let user of searchResults" 
+        (click)="irAPerfil(user.id)"
+      >
+        <img [src]="user.fotoPerfil || 'assets/default-avatar.png'" class="search-avatar">
+        <div class="search-info">
+          <span class="search-name">{{ user.nombres }} {{ user.apellidos }}</span>
+          <span class="search-meta">{{ user.carrera || user.rol }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <ul class="nav-links">
     <li>
       <a routerLink="/feed" routerLinkActive="active">

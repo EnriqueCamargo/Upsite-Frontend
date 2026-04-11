@@ -6,17 +6,63 @@
         <img [src]="usuario?.fotoPerfil || 'assets/default-avatar.png'" alt="Foto de perfil">
       </div>
       <div class="datos-usuario">
-        <h2 class="nombre-completo">{{ usuario?.nombres }} {{ usuario?.apellidos }}</h2>
-        <div class="descripcion">
-          <p><strong>Carrera:</strong> {{ usuario?.carrera || 'No asignada' }}</p>
-          <p><strong>Grupo:</strong> {{ usuario?.grupo || 'No asignado' }}</p>
+        <div class="nombre-y-accion" *ngIf="usuario; else loadingName">
+          <h2 class="nombre-completo">{{ usuario.nombres }} {{ usuario.apellidos }}</h2>
+          <button *ngIf="!esMiPerfil()" (click)="toggleFollow()" class="btn-follow" [class.siguiendo]="usuario.loSigo">
+            {{ usuario.loSigo ? 'Siguiendo' : 'Seguir' }}
+          </button>
+        </div>
+        <ng-template #loadingName>
+          <div class="skeleton-text skeleton-title"></div>
+        </ng-template>
+
+        <div class="descripcion" *ngIf="usuario; else loadingDesc">
+          <p><strong>Carrera:</strong> {{ usuario.carrera || 'No asignada' }}</p>
+          <p><strong>Grupo:</strong> {{ usuario.grupo || 'No asignado' }}</p>
+        </div>
+        <ng-template #loadingDesc>
+          <div class="skeleton-text"></div>
+          <div class="skeleton-text" style="width: 60%"></div>
+        </ng-template>
+
+        <div class="social-stats" *ngIf="usuario">
+          <span (click)="mostrandoSeguidores = !mostrandoSeguidores; mostrandoSiguiendo = false" class="stat-item">
+            <strong>{{ usuario.seguidoresCount || 0 }}</strong> seguidores
+          </span>
+          <span (click)="mostrandoSiguiendo = !mostrandoSiguiendo; mostrandoSeguidores = false" class="stat-item">
+            <strong>{{ usuario.siguiendoCount || 0 }}</strong> siguiendo
+          </span>
         </div>
       </div>
     </div>
   </div>
 
+  <div class="social-lists-container" *ngIf="esMiPerfil()">
+    <div class="social-list" *ngIf="mostrandoSeguidores">
+      <h3>Seguidores</h3>
+      <div class="user-grid">
+        <div class="user-card" *ngFor="let seg of seguidores" [routerLink]="['/perfil', seg.id]">
+          <img [src]="seg.fotoPerfil || 'assets/default-avatar.png'">
+          <span>{{ seg.nombres }}</span>
+        </div>
+        <p *ngIf="seguidores.length === 0">No tienes seguidores aún.</p>
+      </div>
+    </div>
+
+    <div class="social-list" *ngIf="mostrandoSiguiendo">
+      <h3>Siguiendo</h3>
+      <div class="user-grid">
+        <div class="user-card" *ngFor="let sig of siguiendo" [routerLink]="['/perfil', sig.id]">
+          <img [src]="sig.fotoPerfil || 'assets/default-avatar.png'">
+          <span>{{ sig.nombres }}</span>
+        </div>
+        <p *ngIf="siguiendo.length === 0">No sigues a nadie aún.</p>
+      </div>
+    </div>
+  </div>
+
   <div class="publicaciones-container">
-    <h3>Mis Publicaciones</h3>
+    <h3>{{ esMiPerfil() ? 'Mis Publicaciones' : 'Publicaciones' }}</h3>
     <div *ngIf="publicaciones.length === 0" class="no-publicaciones">
       Aún no has hecho ninguna publicación.
     </div>
@@ -52,6 +98,14 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <div *ngIf="cargandoMas" class="loading-more">
+      Cargando más publicaciones...
+    </div>
+    
+    <div *ngIf="!hayMas && publicaciones.length > 0" class="no-more">
+      No hay más publicaciones por cargar.
     </div>
   </div>
 </div>

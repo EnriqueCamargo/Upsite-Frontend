@@ -14,11 +14,12 @@ import { Grupo } from '../../interfaces/grupo';
 import { Usuario } from '../../interfaces/usuario';
 import { forkJoin } from 'rxjs';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [CommonModule, FormsModule, RelativeTimePipe],
+  imports: [CommonModule, FormsModule, RelativeTimePipe, RouterModule],
   templateUrl: './feed.html',
   styleUrl: './feed.css'
 })

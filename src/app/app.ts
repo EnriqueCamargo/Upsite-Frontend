@@ -14,7 +14,7 @@ export class App {
   protected readonly title = signal('Upsite-Frontend');
   private authService = inject(AuthService);
 
-  isLoggedIn() {
+  get isLoggedIn() {
     return this.authService.isLoggedIn();
   }
 }

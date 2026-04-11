@@ -21,6 +21,7 @@ export interface Comentario {
   idPadre: number | null;
   totalLikes: number;
   meGusta: boolean;
+  idAutor: number;
   respondiendo?: boolean;
   textoRespuesta?: string;
 }
