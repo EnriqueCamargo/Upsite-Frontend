@@ -15,6 +15,15 @@ export class App {
   private authService = inject(AuthService);
 
   get isLoggedIn() {
-    return this.authService.isLoggedIn();
+    const logueado = this.authService.isLoggedIn();
+    if (!logueado) return false;
+
+    const usuario = this.authService.getUsuario();
+    // Si es estudiante y no tiene datos, ocultamos el navbar para forzar el setup
+    if (usuario?.rol === 'ESTUDIANTE' && (!usuario.idCarrera || !usuario.idGrupo)) {
+      return false;
+    }
+    
+    return true;
   }
 }

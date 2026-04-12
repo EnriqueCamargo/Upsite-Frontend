@@ -83,8 +83,20 @@ export class PublicacionService {
     return this.http.delete<void>(`${this.apiUrl}/publicaciones/${idPublicacion}/like`);
   }
 
+  darLikeComentario(idComentario: number): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/publicaciones/comentarios/${idComentario}/like`, {});
+  }
+
+  quitarLikeComentario(idComentario: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/publicaciones/comentarios/${idComentario}/like`);
+  }
+
   getComentarios(idPublicacion: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/publicaciones/${idPublicacion}/comentarios`);
+  }
+
+  getRespuestas(idComentario: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/publicaciones/comentarios/${idComentario}/respuestas`);
   }
 
   comentar(idPublicacion: number, texto: string, idPadre?: number): Observable<any> {

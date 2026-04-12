@@ -5,13 +5,15 @@ import { AuthService } from '../../services/auth';
 import { PublicacionService } from '../../services/publicacion';
 import { UsuarioService } from '../../services/usuario';
 import { Usuario } from '../../interfaces/usuario';
-import { Publicacion } from '../../interfaces/publicacion';
+import { Publicacion, Comentario, MultimediaPublicacion } from '../../interfaces/publicacion';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
+import { FormsModule } from '@angular/forms';
+import { LightboxComponent } from '../lightbox/lightbox';
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, RelativeTimePipe, RouterModule],
+  imports: [CommonModule, RelativeTimePipe, RouterModule, FormsModule, LightboxComponent],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css'
 })
@@ -32,9 +34,14 @@ export class PerfilComponent implements OnInit {
   mostrandoSeguidores = false;
   mostrandoSiguiendo = false;
 
+  // Lightbox
+  lightboxAbierto = false;
+  lightboxMedia: MultimediaPublicacion[] = [];
+  lightboxIndex = 0;
+
   // Paginación
   pagina = 0;
-  size = 10;
+  size = 5;
   hayMas = true;
   cargandoMas = false;
 
@@ -47,7 +54,6 @@ export class PerfilComponent implements OnInit {
         const targetId = id ? Number(id) : (this.usuarioLogueado?.id);
         
         if (targetId) {
-          // Si cambiamos de usuario, reseteamos vista pero intentamos recuperar caché
           if (this.usuario?.id !== targetId) {
             this.cargarUsuario(targetId);
           }
@@ -94,23 +100,17 @@ export class PerfilComponent implements OnInit {
         if (data.length < this.size) {
           this.hayMas = false;
         }
-        
         if (reset) {
           this.publicaciones = data;
         } else {
           this.publicaciones = [...this.publicaciones, ...data];
         }
-        
         this.pagina++;
         this.cargandoMas = false;
-        
-        // Actualizar caché en el servicio
         this.publicacionService.updateCachedPerfil(this.usuario!.id, this.publicaciones, this.pagina, this.hayMas);
-        
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error al cargar publicaciones', error);
         this.cargandoMas = false;
         this.cdr.detectChanges();
       }
@@ -120,10 +120,8 @@ export class PerfilComponent implements OnInit {
   @HostListener('window:scroll')
   onScroll() {
     if (!isPlatformBrowser(this.platformId)) return;
-
     const pos = (document.documentElement.scrollTop || document.body.scrollTop) + document.documentElement.offsetHeight;
     const max = document.documentElement.scrollHeight;
-
     if (pos > max - 200) {
       this.cargarPublicaciones();
     }
@@ -144,7 +142,6 @@ export class PerfilComponent implements OnInit {
 
   toggleFollow() {
     if (!this.usuario) return;
-
     if (this.usuario.loSigo) {
       this.usuarioService.dejarDeSeguir(this.usuario.id).subscribe(() => {
         this.cargarUsuario(this.usuario!.id);
@@ -158,6 +155,67 @@ export class PerfilComponent implements OnInit {
 
   esMiPerfil(): boolean {
     return this.usuario?.id === this.usuarioLogueado?.id;
+  }
+
+  comentar(publicacion: any, idPadre?: number, textoRespuesta?: string) {
+    const texto = idPadre ? textoRespuesta : publicacion.nuevoComentario;
+    if (!texto?.trim()) return;
+
+    if (idPadre) {
+      const padre = publicacion.comentarios?.find((c: any) => c.id === idPadre);
+      if (padre) {
+        if (padre.enviando) return;
+        padre.enviando = true;
+      }
+    } else {
+      if (publicacion.comentando) return;
+      publicacion.comentando = true;
+    }
+
+    this.publicacionService.comentar(publicacion.id, texto, idPadre).subscribe({
+      next: (comentario) => {
+        if (idPadre) {
+          const padre = publicacion.comentarios?.find((c: any) => c.id === idPadre);
+          if (padre) {
+            if (!padre.respuestas) padre.respuestas = [];
+            padre.respuestas.push(comentario);
+            padre.respondiendo = false;
+            padre.textoRespuesta = '';
+            padre.totalRespuestas++;
+            padre.respuestasAbiertas = true;
+            padre.enviando = false;
+          }
+        } else {
+          if (!publicacion.comentarios) publicacion.comentarios = [];
+          publicacion.comentarios.push(comentario);
+          publicacion.nuevoComentario = '';
+          publicacion.comentando = false;
+        }
+        publicacion.totalComentarios++;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        if (idPadre) {
+          const padre = publicacion.comentarios?.find((c: any) => c.id === idPadre);
+          if (padre) padre.enviando = false;
+        } else {
+          publicacion.comentando = false;
+        }
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleRespuestas(comentario: Comentario) {
+    comentario.respuestasAbiertas = !comentario.respuestasAbiertas;
+    if (comentario.respuestasAbiertas && (!comentario.respuestas || comentario.respuestas.length === 0)) {
+      this.publicacionService.getRespuestas(comentario.id).subscribe({
+        next: (respuestas) => {
+          comentario.respuestas = respuestas;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   darLike(publicacion: Publicacion) {
@@ -174,5 +232,37 @@ export class PerfilComponent implements OnInit {
         this.cdr.detectChanges();
       });
     }
+  }
+
+  toggleLikeComentario(comentario: Comentario) {
+    if (comentario.meGusta) {
+      this.publicacionService.quitarLikeComentario(comentario.id).subscribe({
+        next: () => {
+          comentario.meGusta = false;
+          comentario.totalLikes--;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.publicacionService.darLikeComentario(comentario.id).subscribe({
+        next: () => {
+          comentario.meGusta = true;
+          comentario.totalLikes++;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  abrirLightbox(media: MultimediaPublicacion[], index: number) {
+    this.lightboxMedia = media;
+    this.lightboxIndex = index;
+    this.lightboxAbierto = true;
+    this.cdr.detectChanges();
+  }
+
+  cerrarLightbox() {
+    this.lightboxAbierto = false;
+    this.cdr.detectChanges();
   }
 }

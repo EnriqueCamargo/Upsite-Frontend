@@ -74,7 +74,6 @@
           <div class="post-info">
             <div class="autor-y-tiempo">
               <span class="post-author">{{ post.usuario.nombres }} {{ post.usuario.apellidos }}</span>
-              <span class="separador">•</span>
               <span class="tiempo-publicado">{{ post.fechaPublicacion | relativeTime }}</span>
             </div>
             <span class="post-meta">{{ post.importancia }}</span>
@@ -82,10 +81,13 @@
         </div>
         <div class="post-content">
           <p>{{ post.texto }}</p>
-          <div class="post-multimedia" *ngIf="post.multimedia && post.multimedia.length > 0">
-            <div *ngFor="let media of post.multimedia">
-              <img *ngIf="media.tipo === 'IMAGE'" [src]="media.ruta" alt="Multimedia">
-              <video *ngIf="media.tipo === 'VIDEO'" [src]="media.ruta" controls></video>
+          <div class="publicacion-multimedia collage-grid" *ngIf="post.multimedia && post.multimedia.length > 0" [ngClass]="'items-' + post.multimedia.length">
+            <div class="collage-item" *ngFor="let media of post.multimedia; let i = index" (click)="abrirLightbox(post.multimedia, i)">
+              <img *ngIf="media.tipo === 'IMAGE'" [src]="media.ruta" alt="Multimedia" class="media-item">
+              <div class="video-wrapper" *ngIf="media.tipo === 'VIDEO'">
+                <video [src]="media.ruta" class="media-item"></video>
+                <div class="video-play-hint">▶</div>
+              </div>
             </div>
           </div>
         </div>
@@ -93,10 +95,68 @@
           <button (click)="darLike(post)" [class.liked]="post.meGusta" class="accion-btn">
             {{ post.meGusta ? '❤️' : '🤍' }} {{ post.totalLikes }}
           </button>
-          <button class="accion-btn">
+          <button class="accion-btn" (click)="post.comentariosAbiertos = !post.comentariosAbiertos">
             <span class="icon">💬</span> {{ post.totalComentarios }}
           </button>
         </div>
+
+        @if (post.comentariosAbiertos) {
+          <div class="comentarios-section">
+            <div class="comentario-container" *ngFor="let comentario of post.comentarios">
+              <div class="comentario">
+                <img [src]="comentario.autorFoto || 'assets/default-avatar.png'" class="clickable-avatar" [routerLink]="['/perfil', comentario.idAutor]">
+                <div class="comentario-body">
+                  <p class="comentario-autor clickable-link" [routerLink]="['/perfil', comentario.idAutor]">{{ comentario.autorNombre }}</p>
+                  <p class="comentario-texto">{{ comentario.texto }}</p>
+                  <div class="comentario-acciones">
+                    <button class="accion-btn small" (click)="toggleLikeComentario(comentario)">
+                      {{ comentario.meGusta ? '❤️' : '🤍' }} {{ comentario.totalLikes }}
+                    </button>
+                    <span class="separador">•</span>
+                    <button class="reply-btn" (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
+                    <span class="separador">•</span>
+                    <button *ngIf="comentario.totalRespuestas > 0" class="toggle-respuestas-btn" (click)="toggleRespuestas(comentario)">
+                      {{ comentario.respuestasAbiertas ? 'Ocultar respuestas' : 'Ver ' + comentario.totalRespuestas + ' respuestas' }}
+                    </button>
+                  </div>
+
+                  @if (comentario.respondiendo) {
+                    <div class="respuesta-input">
+                      <input [(ngModel)]="comentario.textoRespuesta" placeholder="Responde..." [disabled]="!!comentario.enviando">
+                      <button (click)="comentar(post, comentario.id, comentario.textoRespuesta)" [disabled]="!!comentario.enviando || !comentario.textoRespuesta?.trim()">
+                        {{ comentario.enviando ? '...' : 'Enviar' }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              @if (comentario.respuestasAbiertas && comentario.respuestas) {
+                <div class="respuestas-list">
+                  <div class="comentario respuesta" *ngFor="let resp of comentario.respuestas">
+                    <img [src]="resp.autorFoto || 'assets/default-avatar.png'" class="clickable-avatar small" [routerLink]="['/perfil', resp.idAutor]">
+                    <div class="comentario-body">
+                      <p class="comentario-autor clickable-link" [routerLink]="['/perfil', resp.idAutor]">{{ resp.autorNombre }}</p>
+                      <p class="comentario-texto">{{ resp.texto }}</p>
+                      <div class="comentario-acciones">
+                        <button class="accion-btn small" (click)="toggleLikeComentario(resp)">
+                          {{ resp.meGusta ? '❤️' : '🤍' }} {{ resp.totalLikes }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="nuevo-comentario">
+              <input [(ngModel)]="post.nuevoComentario" placeholder="Escribe un comentario..." [disabled]="!!post.comentando">
+              <button (click)="comentar(post)" [disabled]="!!post.comentando || !post.nuevoComentario?.trim()">
+                {{ post.comentando ? '...' : 'Enviar' }}
+              </button>
+            </div>
+          </div>
+        }
       </div>
     </div>
 
@@ -108,4 +168,12 @@
       No hay más publicaciones por cargar.
     </div>
   </div>
+
+  <!-- Lightbox -->
+  <app-lightbox 
+    *ngIf="lightboxAbierto" 
+    [mediaList]="lightboxMedia" 
+    [currentIndex]="lightboxIndex"
+    (close)="cerrarLightbox()">
+  </app-lightbox>
 </div>

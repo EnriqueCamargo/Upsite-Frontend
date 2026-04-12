@@ -1,0 +1,18 @@
+<div class="lightbox-overlay" (click)="onClose()">
+  <button class="close-btn" (click)="onClose()">✕</button>
+  
+  <div class="lightbox-content" (click)="$event.stopPropagation()">
+    <button *ngIf="mediaList.length > 1" class="nav-btn prev" (click)="prev($event)">❮</button>
+    
+    <div class="media-wrapper">
+      <img *ngIf="currentMedia.tipo === 'IMAGE'" [src]="currentMedia.ruta" alt="Full view">
+      <video *ngIf="currentMedia.tipo === 'VIDEO'" [src]="currentMedia.ruta" controls autoplay></video>
+    </div>
+
+    <button *ngIf="mediaList.length > 1" class="nav-btn next" (click)="next($event)">❯</button>
+  </div>
+
+  <div class="lightbox-counter" *ngIf="mediaList.length > 1">
+    {{ currentIndex + 1 }} / {{ mediaList.length }}
+  </div>
+</div>

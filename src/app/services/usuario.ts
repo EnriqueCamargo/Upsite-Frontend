@@ -35,4 +35,8 @@ export class UsuarioService {
   getSiguiendo(id: number): Observable<Usuario[]> {
     return this.http.get<Usuario[]>(`${this.apiUrl}/${id}/siguiendo`);
   }
+
+  asignarGrupo(idUsuario: number, idGrupo: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${idUsuario}/asignar-grupo/${idGrupo}`, {});
+  }
 }

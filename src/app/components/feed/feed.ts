@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID, HostListener
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PublicacionService } from '../../services/publicacion';
-import { Publicacion } from '../../interfaces/publicacion';
+import { Publicacion, Comentario, MultimediaPublicacion } from '../../interfaces/publicacion';
 import { SupabaseService } from '../../services/supabase';
 import { Importancia } from '../../enums/importancia';
 import { CarreraService } from '../../services/carrera';
@@ -15,11 +15,12 @@ import { Usuario } from '../../interfaces/usuario';
 import { forkJoin } from 'rxjs';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 import { RouterModule } from '@angular/router';
+import { LightboxComponent } from '../lightbox/lightbox';
 
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [CommonModule, FormsModule, RelativeTimePipe, RouterModule],
+  imports: [CommonModule, FormsModule, RelativeTimePipe, RouterModule, LightboxComponent],
   templateUrl: './feed.html',
   styleUrl: './feed.css'
 })
@@ -34,11 +35,18 @@ export class FeedComponent implements OnInit {
   esEstudiante = false;
   esDocente = false;
   usuario: Usuario | null = null;
+  
   archivosSeleccionados: File[] = [];
+  previsualizaciones: string[] = [];
+
+  // Lightbox
+  lightboxAbierto = false;
+  lightboxMedia: MultimediaPublicacion[] = [];
+  lightboxIndex = 0;
 
   // Paginación
   pagina = 0;
-  size = 10;
+  size = 5;
   hayMas = true;
   cargandoMas = false;
 
@@ -74,7 +82,7 @@ export class FeedComponent implements OnInit {
     if (this.esEstudiante) {
         this.nuevaPublicacion.esGlobal = true;
         this.nuevaPublicacion.importancia = Importancia.PUBLICACION;
-        this.filtros.scope = 'GLOBAL'; // Por defecto ver globales
+        this.filtros.scope = 'GLOBAL';
     }
   }
 
@@ -102,10 +110,8 @@ export class FeedComponent implements OnInit {
     }
 
     if (!this.hayMas || this.cargandoMas) return;
-
     if (!reset) this.cargandoMas = true;
     
-    // Preparar filtros según el scope si es estudiante
     if (this.esEstudiante) {
         if (this.filtros.scope === 'GLOBAL') {
             this.filtros.esGlobal = true;
@@ -154,7 +160,6 @@ export class FeedComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error al cargar el feed', err);
         this.error = true;
         this.cargando = false;
         this.cargandoMas = false;
@@ -166,11 +171,8 @@ export class FeedComponent implements OnInit {
   @HostListener('window:scroll')
   onScroll() {
     if (!isPlatformBrowser(this.platformId)) return;
-
     const pos = (document.documentElement.scrollTop || document.body.scrollTop) + document.documentElement.offsetHeight;
     const max = document.documentElement.scrollHeight;
-
-    // Si estamos a menos de 200px del final, cargar más
     if (pos > max - 200) {
         this.cargarFeed();
     }
@@ -181,9 +183,6 @@ export class FeedComponent implements OnInit {
       next: (data) => {
         this.carreras = data;
         this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error al cargar carreras', err);
       }
     });
   }
@@ -210,18 +209,13 @@ export class FeedComponent implements OnInit {
   onCarrerasChange() {
     if (this.nuevaPublicacion.idsCarreras.length > 0) {
         const requests = this.nuevaPublicacion.idsCarreras.map(id => this.grupoService.getAllByCarrera(id));
-        
         forkJoin(requests).subscribe({
             next: (results) => {
-                // Combinar todos los grupos y ordenar naturalmente
                 const todosLosGrupos = results.flat();
                 this.gruposDisponibles = todosLosGrupos.sort((a, b) => this.compararNombresGrupos(a.nombre, b.nombre));
-                
-                // Limpiar ids seleccionadas que ya no están disponibles
                 this.nuevaPublicacion.idsGrupos = this.nuevaPublicacion.idsGrupos.filter(idG => 
                     this.gruposDisponibles.some(g => g.id === idG)
                 );
-                
                 this.cdr.detectChanges();
             }
         });
@@ -271,6 +265,26 @@ export class FeedComponent implements OnInit {
     }
   }
 
+  toggleLikeComentario(comentario: Comentario) {
+    if (comentario.meGusta) {
+      this.publicacionService.quitarLikeComentario(comentario.id).subscribe({
+        next: () => {
+          comentario.meGusta = false;
+          comentario.totalLikes--;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.publicacionService.darLikeComentario(comentario.id).subscribe({
+        next: () => {
+          comentario.meGusta = true;
+          comentario.totalLikes++;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
   toggleComentarios(publicacion: Publicacion) {
     publicacion.comentariosAbiertos = !publicacion.comentariosAbiertos;
     if (publicacion.comentariosAbiertos && (!publicacion.comentarios || publicacion.comentarios.length === 0)) {
@@ -287,58 +301,104 @@ export class FeedComponent implements OnInit {
     const texto = idPadre ? textoRespuesta : publicacion.nuevoComentario;
     if (!texto?.trim()) return;
 
+    if (idPadre) {
+      const padre = publicacion.comentarios?.find(c => c.id === idPadre);
+      if (padre) {
+        if (padre.enviando) return;
+        padre.enviando = true;
+      }
+    } else {
+      if (publicacion.comentando) return;
+      publicacion.comentando = true;
+    }
+
     this.publicacionService.comentar(publicacion.id, texto, idPadre).subscribe({
       next: (comentario) => {
-        if (!publicacion.comentarios) publicacion.comentarios = [];
-        publicacion.comentarios.push(comentario);
         if (idPadre) {
-          const padre = publicacion.comentarios.find(c => c.id === idPadre);
+          const padre = publicacion.comentarios?.find(c => c.id === idPadre);
           if (padre) {
+            if (!padre.respuestas) padre.respuestas = [];
+            padre.respuestas.push(comentario);
             padre.respondiendo = false;
             padre.textoRespuesta = '';
+            padre.totalRespuestas++;
+            padre.respuestasAbiertas = true;
+            padre.enviando = false;
           }
         } else {
+          if (!publicacion.comentarios) publicacion.comentarios = [];
+          publicacion.comentarios.push(comentario);
           publicacion.nuevoComentario = '';
+          publicacion.comentando = false;
         }
         publicacion.totalComentarios++;
         this.cdr.detectChanges();
       },
       error: (err) => {
+          if (idPadre) {
+            const padre = publicacion.comentarios?.find(c => c.id === idPadre);
+            if (padre) padre.enviando = false;
+          } else {
+            publicacion.comentando = false;
+          }
           if (err.status === 400) {
               alert(err.error.message || "Error al comentar");
           }
+          this.cdr.detectChanges();
       }
     });
   }
 
+  toggleRespuestas(comentario: Comentario) {
+    comentario.respuestasAbiertas = !comentario.respuestasAbiertas;
+    if (comentario.respuestasAbiertas && (!comentario.respuestas || comentario.respuestas.length === 0)) {
+      this.publicacionService.getRespuestas(comentario.id).subscribe({
+        next: (respuestas) => {
+          comentario.respuestas = respuestas;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
   onArchivosSeleccionados(event: any) {
     const files = Array.from(event.target.files) as File[];
-    
-    if (this.esEstudiante) {
-        const tieneVideo = files.some(f => f.type.startsWith('video/'));
-        if (tieneVideo) {
-            alert('Los estudiantes no pueden subir videos, solo imágenes.');
-            event.target.value = ''; // Reset input
-            this.archivosSeleccionados = [];
-            return;
-        }
+    const espacioDisponible = 5 - this.archivosSeleccionados.length;
+    if (files.length > espacioDisponible) {
+      alert(`Solo puedes subir hasta 5 archivos. Se añadirán ${espacioDisponible}.`);
     }
-    
-    this.archivosSeleccionados = files;
+    const archivosAceptados = files.slice(0, espacioDisponible);
+    for (const archivo of archivosAceptados) {
+      if (this.esEstudiante && archivo.type.startsWith('video/')) {
+        alert('Los estudiantes no pueden subir videos.');
+        continue;
+      }
+      this.archivosSeleccionados.push(archivo);
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.previsualizaciones.push(e.target.result);
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(archivo);
+    }
+    event.target.value = '';
+  }
+
+  descartarArchivo(index: number) {
+    this.archivosSeleccionados.splice(index, 1);
+    this.previsualizaciones.splice(index, 1);
+    this.cdr.detectChanges();
   }
 
   async publicar() {
     if (!this.nuevaPublicacion.texto.trim()) return;
     this.publicando = true;
-
-    // Si es estudiante, forzar global y publicacion
     if (this.esEstudiante) {
         this.nuevaPublicacion.esGlobal = true;
         this.nuevaPublicacion.importancia = Importancia.PUBLICACION;
         this.nuevaPublicacion.idsCarreras = [];
         this.nuevaPublicacion.idsGrupos = [];
     }
-
     this.publicacionService.crear(
         this.nuevaPublicacion.texto,
         this.nuevaPublicacion.importancia,
@@ -353,21 +413,35 @@ export class FeedComponent implements OnInit {
                     await this.publicacionService.subirMultimedia(publicacion.id, url, archivo.type).toPromise();
                 }
             }
-            this.nuevaPublicacion.texto = '';
-            this.nuevaPublicacion.idsCarreras = [];
-            this.nuevaPublicacion.idsGrupos = [];
-            this.gruposDisponibles = [];
-            this.archivosSeleccionados = [];
+            this.limpiarFormulario();
             this.publicando = false;
-            this.cargarFeed(true); // Recargar feed completo para ver la nueva publicación
+            this.cargarFeed(true);
         },
         error: (err) => {
-            console.error('Error al publicar', err);
-            if (err.status === 400) {
-                alert(err.error.message || "Error al publicar");
-            }
             this.publicando = false;
         }
     });
-}
+  }
+
+  limpiarFormulario() {
+    this.nuevaPublicacion.texto = '';
+    this.nuevaPublicacion.idsCarreras = [];
+    this.nuevaPublicacion.idsGrupos = [];
+    this.gruposDisponibles = [];
+    this.archivosSeleccionados = [];
+    this.previsualizaciones = [];
+    this.cdr.detectChanges();
+  }
+
+  abrirLightbox(media: MultimediaPublicacion[], index: number) {
+    this.lightboxMedia = media;
+    this.lightboxIndex = index;
+    this.lightboxAbierto = true;
+    this.cdr.detectChanges();
+  }
+
+  cerrarLightbox() {
+    this.lightboxAbierto = false;
+    this.cdr.detectChanges();
+  }
 }
