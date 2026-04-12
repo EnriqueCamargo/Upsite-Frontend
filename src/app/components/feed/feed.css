@@ -136,7 +136,7 @@
     margin-top: 10px;
 }
 
-.selector-grid {
+.checkbox-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 10px;
