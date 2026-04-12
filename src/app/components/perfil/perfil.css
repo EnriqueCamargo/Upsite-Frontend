@@ -216,6 +216,7 @@
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   border: 1px solid #f0f2f5;
+  position: relative;
 }
 
 .publicacion-header {
@@ -223,12 +224,13 @@
   align-items: center;
   margin-bottom: 15px;
   gap: 12px;
-  position: relative;
+  padding-right: 40px;
 }
 
 .post-menu-container {
-  margin-left: auto;
-  position: relative;
+  position: absolute;
+  top: 15px;
+  right: 10px;
 }
 
 .btn-post-menu {
