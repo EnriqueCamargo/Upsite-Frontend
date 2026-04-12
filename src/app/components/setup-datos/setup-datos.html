@@ -1,0 +1,33 @@
+<div class="setup-container">
+  <div class="setup-card">
+    <div class="logo">
+      <h1>Upsite</h1>
+    </div>
+    <h2>¡Bienvenido!</h2>
+    <p>Para continuar, necesitamos completar tu información académica.</p>
+
+    <div class="form-group">
+      <label>Selecciona tu Carrera</label>
+      <select [(ngModel)]="idCarreraSeleccionada" (change)="onCarreraChange()" class="setup-select">
+        <option [ngValue]="undefined" disabled>Elige una carrera...</option>
+        <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="form-group" *ngIf="idCarreraSeleccionada">
+      <label>Selecciona tu Grupo</label>
+      <select [(ngModel)]="idGrupoSeleccionado" class="setup-select">
+        <option [ngValue]="undefined" disabled>Elige tu grupo...</option>
+        <option *ngFor="let g of grupos" [value]="g.id">{{ g.nombre }}</option>
+      </select>
+    </div>
+
+    <button 
+      class="btn-finish" 
+      (click)="guardar()" 
+      [disabled]="!idGrupoSeleccionado || cargando"
+    >
+      {{ cargando ? 'Guardando...' : 'Finalizar Configuración' }}
+    </button>
+  </div>
+</div>

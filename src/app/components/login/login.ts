@@ -35,7 +35,13 @@ export class LoginComponent {
           this.authService.loginConGoogle(idToken).subscribe({
             next: (response: LoginResponse) => {
               this.authService.guardarSesion(response.token, response.usuario);
-              this.router.navigate(['/feed']);
+              
+              // Lógica de redirección inteligente
+              if (response.usuario.rol === 'ESTUDIANTE' && (!response.usuario.idCarrera || !response.usuario.idGrupo)) {
+                this.router.navigate(['/setup-datos']);
+              } else {
+                this.router.navigate(['/feed']);
+              }
             },
             error: (err) => {
             console.error('Error al iniciar sesión', err);

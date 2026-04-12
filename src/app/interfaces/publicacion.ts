@@ -22,6 +22,10 @@ export interface Comentario {
   totalLikes: number;
   meGusta: boolean;
   idAutor: number;
+  totalRespuestas: number;
+  respuestas?: Comentario[];
+  respuestasAbiertas?: boolean;
+  enviando?: boolean;
   respondiendo?: boolean;
   textoRespuesta?: string;
 }
@@ -38,6 +42,8 @@ export interface Publicacion {
   targetCarreras: Carrera[];
   targetGrupos: Grupo[];
   fechaPublicacion: string;
+  mostrarMenu?: boolean;
+  comentando?: boolean;
   comentariosAbiertos?: boolean;
   comentarios?: Comentario[];
   nuevoComentario?: string;

@@ -1,0 +1,83 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>Administración de Usuarios</h1>
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchText" 
+        (ngModelChange)="filtrarUsuarios()" 
+        placeholder="Buscar por nombre o matrícula..."
+      />
+    </div>
+  </div>
+
+  <div class="table-container" *ngIf="!cargando; else loading">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Matrícula</th>
+          <th>Rol</th>
+          <th>Carrera</th>
+          <th>Grupo</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of usuariosFiltrados">
+          <td>
+            <div class="user-info-cell">
+              <img [src]="u.fotoPerfil || 'assets/default-avatar.png'" class="table-avatar">
+              <div class="text">
+                <span class="name">{{ u.nombres }} {{ u.apellidos }}</span>
+                <span class="email">{{ u.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ u.matricula }}</td>
+          <td>
+            <select [(ngModel)]="u.rol" class="admin-select">
+              <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
+            </select>
+          </td>
+          <td>
+            <select [(ngModel)]="u.idCarrera" (change)="onCarreraChange(u)" class="admin-select">
+              <option [ngValue]="null">Ninguna</option>
+              <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
+            </select>
+          </td>
+          <td>
+            <select [(ngModel)]="u.idGrupo" class="admin-select" [disabled]="!u.idCarrera">
+              <option [ngValue]="null">Ninguno</option>
+              <option *ngFor="let g of getGrupos(u.idCarrera)" [value]="g.id">{{ g.nombre }}</option>
+            </select>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="u.status === 1" [class.inactive]="u.status === 0">
+              {{ u.status === 1 ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-save" (click)="guardarCambios(u)" title="Guardar cambios">💾</button>
+              <button 
+                class="btn-status" 
+                [class.deactivate]="u.status === 1" 
+                [class.activate]="u.status === 0"
+                (click)="toggleStatus(u)"
+                [title]="u.status === 1 ? 'Desactivar' : 'Activar'"
+              >
+                {{ u.status === 1 ? '🚫' : '✅' }}
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #loading>
+    <div class="admin-loading">Cargando usuarios...</div>
+  </ng-template>
+</div>

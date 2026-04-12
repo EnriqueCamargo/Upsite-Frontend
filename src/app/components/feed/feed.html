@@ -30,7 +30,7 @@
   </div>
 
   <!-- CREAR PUBLICACIÓN -->
-  <div class="nueva-publicacion">
+  <div class="crear-publicacion">
     <textarea
       [(ngModel)]="nuevaPublicacion.texto"
       placeholder="¿Qué quieres compartir?"
@@ -39,14 +39,18 @@
     
     <div class="opciones-publicacion">
       @if (!esEstudiante) {
-        <select [(ngModel)]="nuevaPublicacion.importancia">
+        <select [(ngModel)]="nuevaPublicacion.importancia" (change)="onImportanciaChange()">
           <option value="PUBLICACION">Publicación</option>
           <option value="AVISO">Aviso</option>
-          <option value="AVISO_IMPORTANTE">Urgente</option>
+          <option *ngIf="!esDocente" value="AVISO_IMPORTANTE">Urgente</option>
         </select>
 
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="nuevaPublicacion.esGlobal" />
+        <label class="checkbox-label" [class.disabled]="esDocente && nuevaPublicacion.importancia === 'AVISO'">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="nuevaPublicacion.esGlobal" 
+            [disabled]="esDocente && nuevaPublicacion.importancia === 'AVISO'"
+          />
           Global
         </label>
 
@@ -84,8 +88,28 @@
       }
     </div>
 
-    <div class="multimedia-input">
-        <input type="file" multiple (change)="onArchivosSeleccionados($event)" [accept]="esEstudiante ? 'image/*' : 'image/*,video/*'"/>
+    <div class="multimedia-container">
+      <div class="previsualizaciones-grid" *ngIf="previsualizaciones.length > 0">
+        <div class="previsualizacion-item" *ngFor="let preview of previsualizaciones; let i = index">
+          <img [src]="preview" alt="Vista previa">
+          <button class="btn-descartar" (click)="descartarArchivo(i)" title="Eliminar archivo">✕</button>
+        </div>
+      </div>
+
+      <div class="multimedia-input-wrapper" *ngIf="archivosSeleccionados.length < 5">
+        <label class="btn-adjuntar">
+          <input 
+            type="file" 
+            multiple 
+            (change)="onArchivosSeleccionados($event)" 
+            [accept]="esEstudiante ? 'image/*' : 'image/*,video/*'"
+            hidden
+          />
+          <span class="icon">📷</span>
+          {{ archivosSeleccionados.length > 0 ? 'Añadir más' : 'Adjuntar fotos/videos' }}
+          <span class="count">({{ archivosSeleccionados.length }}/5)</span>
+        </label>
+      </div>
     </div>
     
     <button class="btn-publicar" (click)="publicar()" [disabled]="publicando || !nuevaPublicacion.texto.trim()">
@@ -114,7 +138,6 @@
                 <p class="autor-nombre clickable-link" [routerLink]="['/perfil', publicacion.usuario.id]">
                   {{ publicacion.usuario.nombres }} {{ publicacion.usuario.apellidos }}
                 </p>
-                <span class="separador">•</span>
                 <span class="tiempo-publicado">{{ publicacion.fechaPublicacion | relativeTime }}</span>
             </div>
             <div class="badges">
@@ -123,9 +146,17 @@
                     <span class="target-info">
                       Para: @for (c of publicacion.targetCarreras; track c.id) { {{ c.nombre }}{{ $last ? '' : ', ' }} }
                     </span>
-                } @else {
-                    <span class="target-info global">Global</span>
                 }
+            </div>
+          </div>
+
+          <!-- Menú de opciones (Tres puntos) -->
+          <div class="post-menu-container" *ngIf="publicacion.usuario.id === usuario?.id || esAdmin">
+            <button class="btn-post-menu" (click)="publicacion.mostrarMenu = !publicacion.mostrarMenu">⋮</button>
+            <div class="post-menu-dropdown" *ngIf="publicacion.mostrarMenu">
+              <button (click)="eliminarPublicacion(publicacion.id)" class="menu-item delete">
+                <span class="icon">🗑️</span> Eliminar publicación
+              </button>
             </div>
           </div>
         </div>
@@ -133,13 +164,18 @@
         <p class="publicacion-texto">{{ publicacion.texto }}</p>
 
         @if (publicacion.multimedia && publicacion.multimedia.length > 0) {
-          <div class="publicacion-multimedia">
+          <div class="publicacion-multimedia collage-grid" [ngClass]="'items-' + publicacion.multimedia.length">
             @for (media of publicacion.multimedia; track media.id) {
-              @if (media.tipo === 'IMAGE') {
-                <img [src]="media.ruta" alt="multimedia" class="media-item"/>
-              } @else if (media.tipo === 'VIDEO') {
-                <video [src]="media.ruta" controls class="media-item"></video>
-              }
+              <div class="collage-item" (click)="abrirLightbox(publicacion.multimedia, $index)">
+                @if (media.tipo === 'IMAGE') {
+                  <img [src]="media.ruta" alt="multimedia" class="media-item"/>
+                } @else if (media.tipo === 'VIDEO') {
+                  <div class="video-wrapper">
+                    <video [src]="media.ruta" class="media-item"></video>
+                    <div class="video-play-hint">▶</div>
+                  </div>
+                }
+              </div>
             }
           </div>
         }
@@ -157,27 +193,68 @@
           <div class="comentarios-section">
             @if (publicacion.comentarios && publicacion.comentarios.length > 0) {
                 @for (comentario of publicacion.comentarios; track comentario.id) {
-                <div class="comentario">
-                    <img [src]="comentario.autorFoto || 'assets/default-avatar.png'" 
-                         alt="foto" 
-                         [routerLink]="['/perfil', comentario.idAutor]" 
-                         class="clickable-avatar"/>
-                    <div class="comentario-body">
-                    <p class="comentario-autor clickable-link" [routerLink]="['/perfil', comentario.idAutor]">
-                      {{ comentario.autorNombre }}
-                    </p>
-                    <p class="comentario-texto">{{ comentario.texto }}</p>
-                    <button class="reply-btn" (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
-                    @if (comentario.respondiendo) {
-                        <div class="respuesta-input">
-                        <input
-                            [(ngModel)]="comentario.textoRespuesta"
-                            placeholder="Escribe una respuesta..."
-                        />
-                        <button (click)="comentar(publicacion, comentario.id, comentario.textoRespuesta)">Enviar</button>
+                <div class="comentario-container">
+                  <div class="comentario">
+                      <img [src]="comentario.autorFoto || 'assets/default-avatar.png'" 
+                           alt="foto" 
+                           [routerLink]="['/perfil', comentario.idAutor]" 
+                           class="clickable-avatar"/>
+                      <div class="comentario-body">
+                        <p class="comentario-autor clickable-link" [routerLink]="['/perfil', comentario.idAutor]">
+                          {{ comentario.autorNombre }}
+                        </p>
+                        <p class="comentario-texto">{{ comentario.texto }}</p>
+                        <div class="comentario-acciones">
+                          <button class="accion-btn small" (click)="toggleLikeComentario(comentario)">
+                            {{ comentario.meGusta ? '❤️' : '🤍' }} {{ comentario.totalLikes }}
+                          </button>
+                          <span class="separador">•</span>
+                          <button class="reply-btn" (click)="comentario.respondiendo = !comentario.respondiendo">Responder</button>
+                          <span class="separador">•</span>
+                          <button *ngIf="comentario.totalRespuestas > 0" class="toggle-respuestas-btn" (click)="toggleRespuestas(comentario)">
+                            {{ comentario.respuestasAbiertas ? 'Ocultar respuestas' : 'Ver ' + comentario.totalRespuestas + (comentario.totalRespuestas === 1 ? ' respuesta' : ' respuestas') }}
+                          </button>
                         </div>
-                    }
+
+                        @if (comentario.respondiendo) {
+                            <div class="respuesta-input">
+                            <input
+                                [(ngModel)]="comentario.textoRespuesta"
+                                placeholder="Escribe una respuesta..."
+                                [disabled]="!!comentario.enviando"
+                            />
+                            <button (click)="comentar(publicacion, comentario.id, comentario.textoRespuesta)" [disabled]="!!comentario.enviando || !comentario.textoRespuesta?.trim()">
+                              {{ comentario.enviando ? '...' : 'Enviar' }}
+                            </button>
+                            </div>
+                        }
+                      </div>
+                  </div>
+
+                  <!-- Respuestas anidadas -->
+                  @if (comentario.respuestasAbiertas && comentario.respuestas) {
+                    <div class="respuestas-list">
+                      @for (resp of comentario.respuestas; track resp.id) {
+                        <div class="comentario respuesta">
+                          <img [src]="resp.autorFoto || 'assets/default-avatar.png'" 
+                               alt="foto" 
+                               [routerLink]="['/perfil', resp.idAutor]" 
+                               class="clickable-avatar small"/>
+                          <div class="comentario-body">
+                            <p class="comentario-autor clickable-link" [routerLink]="['/perfil', resp.idAutor]">
+                              {{ resp.autorNombre }}
+                            </p>
+                            <p class="comentario-texto">{{ resp.texto }}</p>
+                            <div class="comentario-acciones">
+                              <button class="accion-btn small" (click)="toggleLikeComentario(resp)">
+                                {{ resp.meGusta ? '❤️' : '🤍' }} {{ resp.totalLikes }}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      }
                     </div>
+                  }
                 </div>
                 }
             }
@@ -186,8 +263,11 @@
                 [(ngModel)]="publicacion.nuevoComentario"
                 placeholder="Escribe un comentario..."
                 (keyup.enter)="comentar(publicacion)"
+                [disabled]="!!publicacion.comentando"
               />
-              <button (click)="comentar(publicacion)">Enviar</button>
+              <button (click)="comentar(publicacion)" [disabled]="!!publicacion.comentando || !publicacion.nuevoComentario?.trim()">
+                {{ publicacion.comentando ? '...' : 'Enviar' }}
+              </button>
             </div>
           </div>
         }
@@ -203,4 +283,12 @@
         <div class="no-more">No hay más publicaciones por cargar</div>
     }
   }
+
+  <!-- Lightbox -->
+  <app-lightbox 
+    *ngIf="lightboxAbierto" 
+    [mediaList]="lightboxMedia" 
+    [currentIndex]="lightboxIndex"
+    (close)="cerrarLightbox()">
+  </app-lightbox>
 </div>
