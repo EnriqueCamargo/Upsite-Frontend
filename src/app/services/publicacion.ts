@@ -25,7 +25,18 @@ export class PublicacionService {
   // Caché para perfiles: ID Usuario -> Datos de publicaciones
   private cachePerfiles = new Map<number, CachePerfil>();
 
-  getFeed(carrera?: number, importancia?: Importancia, esGlobal?: boolean, grupo?: number, page: number = 0, size: number = 10): Observable<Publicacion[]> {
+  // Caché para el Feed principal
+  private cacheFeed: Publicacion[] = [];
+  private feedPagina = 0;
+  private feedHayMas = true;
+  private filtrosActuales: any = null;
+
+  getFeed(carrera?: number, importancia?: Importancia, esGlobal?: boolean, grupo?: number, page: number = 0, size: number = 10, forceRefresh: boolean = false): Observable<Publicacion[]> {
+    // Si no es refresco forzado y ya tenemos datos en memoria para esa página, los devolvemos
+    if (!forceRefresh && page === 0 && this.cacheFeed.length > 0) {
+      return of(this.cacheFeed);
+    }
+
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
     if (importancia) params = params.set('importancia', importancia);
@@ -33,7 +44,38 @@ export class PublicacionService {
     if (grupo) params = params.set('grupo', grupo);
     params = params.set('page', page.toString());
     params = params.set('size', size.toString());
-    return this.http.get<Publicacion[]>(`${this.apiUrl}/publicaciones/feed`, { params });
+    
+    return this.http.get<Publicacion[]>(`${this.apiUrl}/publicaciones/feed`, { params }).pipe(
+      tap(data => {
+        if (page === 0) {
+          this.cacheFeed = data;
+        } else {
+          this.cacheFeed = [...this.cacheFeed, ...data];
+        }
+        this.feedPagina = page;
+        this.feedHayMas = data.length === size;
+      })
+    );
+  }
+
+  // Métodos para gestionar el estado del feed
+  getCachedFeed() {
+    return {
+      publicaciones: this.cacheFeed,
+      pagina: this.feedPagina,
+      hayMas: this.feedHayMas,
+      filtros: this.filtrosActuales
+    };
+  }
+
+  setFiltrosCache(filtros: any) {
+    this.filtrosActuales = filtros;
+  }
+
+  clearFeedCache() {
+    this.cacheFeed = [];
+    this.feedPagina = 0;
+    this.feedHayMas = true;
   }
 
   getPublicacionesUsuario(usuarioId: number, page: number = 0, size: number = 10, forceRefresh: boolean = false): Observable<Publicacion[]> {

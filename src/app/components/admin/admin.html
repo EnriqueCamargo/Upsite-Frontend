@@ -5,9 +5,10 @@
       <input 
         type="text" 
         [(ngModel)]="searchText" 
-        (ngModelChange)="filtrarUsuarios()" 
-        placeholder="Buscar por nombre o matrícula..."
+        (keyup.enter)="onSearch()" 
+        placeholder="Buscar y presionar Enter..."
       />
+      <button class="btn-search" (click)="onSearch()">🔍</button>
     </div>
   </div>
 
@@ -25,7 +26,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let u of usuariosFiltrados">
+        <tr *ngFor="let u of usuarios">
           <td>
             <div class="user-info-cell">
               <img [src]="u.fotoPerfil || 'assets/default-avatar.png'" class="table-avatar">
@@ -37,18 +38,18 @@
           </td>
           <td>{{ u.matricula }}</td>
           <td>
-            <select [(ngModel)]="u.rol" class="admin-select">
+            <select [(ngModel)]="u.rol" class="admin-select" (change)="guardarCambios(u)">
               <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
             </select>
           </td>
           <td>
-            <select [(ngModel)]="u.idCarrera" (change)="onCarreraChange(u)" class="admin-select">
+            <select [(ngModel)]="u.idCarrera" (change)="onCarreraChange(u); guardarCambios(u)" class="admin-select">
               <option [ngValue]="null">Ninguna</option>
               <option *ngFor="let c of carreras" [value]="c.id">{{ c.nombre }}</option>
             </select>
           </td>
           <td>
-            <select [(ngModel)]="u.idGrupo" class="admin-select" [disabled]="!u.idCarrera">
+            <select [(ngModel)]="u.idGrupo" class="admin-select" [disabled]="!u.idCarrera" (change)="guardarCambios(u)">
               <option [ngValue]="null">Ninguno</option>
               <option *ngFor="let g of getGrupos(u.idCarrera)" [value]="g.id">{{ g.nombre }}</option>
             </select>
@@ -60,7 +61,6 @@
           </td>
           <td>
             <div class="action-btns">
-              <button class="btn-save" (click)="guardarCambios(u)" title="Guardar cambios">💾</button>
               <button 
                 class="btn-status" 
                 [class.deactivate]="u.status === 1" 
@@ -75,6 +75,12 @@
         </tr>
       </tbody>
     </table>
+  </div>
+    
+  <div class="load-more-container" *ngIf="hayMas">
+    <button class="btn-load-more" (click)="cargarUsuarios()" [disabled]="cargandoMas">
+      {{ cargandoMas ? 'Cargando...' : 'Cargar más usuarios' }}
+    </button>
   </div>
 
   <ng-template #loading>

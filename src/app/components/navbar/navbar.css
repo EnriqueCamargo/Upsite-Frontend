@@ -71,6 +71,39 @@
   animation: slideRight 0.2s ease-out;
 }
 
+.search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+}
+
+.close-search {
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.close-search:hover {
+  color: #333;
+}
+
+.search-loading {
+  padding: 15px;
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+}
+
 @keyframes slideRight {
   from { opacity: 0; transform: translateX(-10px); }
   to { opacity: 1; transform: translateX(0); }
