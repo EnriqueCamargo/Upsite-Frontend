@@ -265,4 +265,21 @@ export class PerfilComponent implements OnInit {
     this.lightboxAbierto = false;
     this.cdr.detectChanges();
   }
+
+  eliminarPublicacion(id: number) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta publicación?')) {
+      this.publicacionService.eliminar(id).subscribe({
+        next: () => {
+          this.publicaciones = this.publicaciones.filter(p => p.id !== id);
+          // Limpiar caché de este perfil ya que cambió
+          if (this.usuario) this.publicacionService.clearCachePerfil(this.usuario.id);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('No se pudo eliminar la publicación.');
+        }
+      });
+    }
+  }
 }

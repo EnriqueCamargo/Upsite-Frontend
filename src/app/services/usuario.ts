@@ -39,4 +39,12 @@ export class UsuarioService {
   asignarGrupo(idUsuario: number, idGrupo: number): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${idUsuario}/asignar-grupo/${idGrupo}`, {});
   }
+
+  actualizarAdmin(idUsuario: number, dto: Usuario): Observable<Usuario> {
+    return this.http.put<Usuario>(`${this.apiUrl}/${idUsuario}/actualizar`, dto);
+  }
+
+  getAll(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(this.apiUrl);
+  }
 }

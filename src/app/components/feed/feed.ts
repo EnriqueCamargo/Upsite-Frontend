@@ -34,6 +34,7 @@ export class FeedComponent implements OnInit {
   publicando = false;
   esEstudiante = false;
   esDocente = false;
+  esAdmin = false;
   usuario: Usuario | null = null;
   
   archivosSeleccionados: File[] = [];
@@ -79,6 +80,7 @@ export class FeedComponent implements OnInit {
     this.usuario = this.authService.getUsuario();
     this.esEstudiante = this.usuario?.rol === Rol.ESTUDIANTE;
     this.esDocente = this.usuario?.rol === Rol.DOCENTE;
+    this.esAdmin = this.usuario?.rol === Rol.ADMIN;
     if (this.esEstudiante) {
         this.nuevaPublicacion.esGlobal = true;
         this.nuevaPublicacion.importancia = Importancia.PUBLICACION;
@@ -443,5 +445,20 @@ export class FeedComponent implements OnInit {
   cerrarLightbox() {
     this.lightboxAbierto = false;
     this.cdr.detectChanges();
+  }
+
+  eliminarPublicacion(id: number) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta publicación?')) {
+      this.publicacionService.eliminar(id).subscribe({
+        next: () => {
+          this.publicaciones = this.publicaciones.filter(p => p.id !== id);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('No se pudo eliminar la publicación.');
+        }
+      });
+    }
   }
 }

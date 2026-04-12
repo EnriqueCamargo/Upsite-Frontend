@@ -24,10 +24,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
   searchText = '';
   searchResults: Usuario[] = [];
   mostrarResultados = false;
+  esAdmin = false;
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
 
   ngOnInit() {
+    const usuario = this.authService.getUsuario();
+    this.esAdmin = usuario?.rol === 'ADMIN';
+
     this.searchSubscription = this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),

@@ -15,6 +15,7 @@ export interface Usuario {
   loSigo: boolean;
   idCarrera?: number;
   idGrupo?: number;
+  status: number;
 }
 
 export interface LoginResponse {

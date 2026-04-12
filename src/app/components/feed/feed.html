@@ -105,8 +105,8 @@
             [accept]="esEstudiante ? 'image/*' : 'image/*,video/*'"
             hidden
           />
-          <span class="icon"></span>
-          {{ archivosSeleccionados.length > 0 ? 'Añadir más' : 'Adjuntar archivos' }}
+          <span class="icon">📷</span>
+          {{ archivosSeleccionados.length > 0 ? 'Añadir más' : 'Adjuntar fotos/videos' }}
           <span class="count">({{ archivosSeleccionados.length }}/5)</span>
         </label>
       </div>
@@ -146,9 +146,17 @@
                     <span class="target-info">
                       Para: @for (c of publicacion.targetCarreras; track c.id) { {{ c.nombre }}{{ $last ? '' : ', ' }} }
                     </span>
-                } @else {
-                    <span class="target-info global">Global</span>
                 }
+            </div>
+          </div>
+
+          <!-- Menú de opciones (Tres puntos) -->
+          <div class="post-menu-container" *ngIf="publicacion.usuario.id === usuario?.id || esAdmin">
+            <button class="btn-post-menu" (click)="publicacion.mostrarMenu = !publicacion.mostrarMenu">⋮</button>
+            <div class="post-menu-dropdown" *ngIf="publicacion.mostrarMenu">
+              <button (click)="eliminarPublicacion(publicacion.id)" class="menu-item delete">
+                <span class="icon">🗑️</span> Eliminar publicación
+              </button>
             </div>
           </div>
         </div>

@@ -1,0 +1,136 @@
+.admin-container {
+  padding: 30px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.admin-header h1 {
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+}
+
+.search-box input {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  width: 300px;
+  outline: none;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  overflow-x: auto;
+  border: 1px solid #e0e0e0;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th {
+  background: #f1f3f5;
+  padding: 15px;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #666;
+  font-weight: 700;
+}
+
+.admin-table td {
+  padding: 15px;
+  border-bottom: 1px solid #f1f3f5;
+  font-size: 14px;
+  color: #444;
+}
+
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-info-cell .text {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info-cell .name {
+  font-weight: 600;
+  color: #333;
+}
+
+.user-info-cell .email {
+  font-size: 12px;
+  color: #888;
+}
+
+.admin-select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  min-width: 120px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-badge.active { background: #e7f9ed; color: #28a745; }
+.status-badge.inactive { background: #fff0f0; color: #dc3545; }
+
+.action-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btns button {
+  background: none;
+  border: 1px solid #eee;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 16px;
+}
+
+.btn-save:hover { background: #e7f3ff; border-color: #007bff; }
+.btn-status.deactivate:hover { background: #fff0f0; border-color: #dc3545; }
+.btn-status.activate:hover { background: #e7f9ed; border-color: #28a745; }
+
+.admin-loading {
+  text-align: center;
+  padding: 50px;
+  color: #666;
+  font-style: italic;
+}

@@ -75,6 +75,10 @@ export class PublicacionService {
     this.cachePerfiles.delete(usuarioId);
   }
 
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/publicaciones/${id}`);
+  }
+
   darLike(idPublicacion: number): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/publicaciones/${idPublicacion}/like`, {});
   }

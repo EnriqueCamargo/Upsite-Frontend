@@ -78,6 +78,16 @@
             </div>
             <span class="post-meta">{{ post.importancia }}</span>
           </div>
+
+          <!-- Menú de opciones (Tres puntos) -->
+          <div class="post-menu-container" *ngIf="post.usuario.id === usuarioLogueado?.id || (usuarioLogueado?.rol === 'ADMIN')">
+            <button class="btn-post-menu" (click)="post.mostrarMenu = !post.mostrarMenu">⋮</button>
+            <div class="post-menu-dropdown" *ngIf="post.mostrarMenu">
+              <button (click)="eliminarPublicacion(post.id)" class="menu-item delete">
+                <span class="icon">🗑️</span> Eliminar publicación
+              </button>
+            </div>
+          </div>
         </div>
         <div class="post-content">
           <p>{{ post.texto }}</p>
