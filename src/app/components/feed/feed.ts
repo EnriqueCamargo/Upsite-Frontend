@@ -12,7 +12,6 @@ import { Rol } from '../../enums/rol';
 import { GrupoService } from '../../services/grupo';
 import { Grupo } from '../../interfaces/grupo';
 import { Usuario } from '../../interfaces/usuario';
-import { forkJoin } from 'rxjs';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 import { RouterModule } from '@angular/router';
 import { LightboxComponent } from '../lightbox/lightbox';
@@ -90,10 +89,24 @@ export class FeedComponent implements OnInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.cargarFeed(true);
+      this.intentarRecuperarCache();
       this.cargarCarreras();
     } else {
       this.cargando = false;
+    }
+  }
+
+  intentarRecuperarCache() {
+    const cache = this.publicacionService.getCachedFeed();
+    if (cache.publicaciones.length > 0) {
+      this.publicaciones = cache.publicaciones;
+      this.pagina = cache.pagina;
+      this.hayMas = cache.hayMas;
+      if (cache.filtros) this.filtros = cache.filtros;
+      this.cargando = false;
+      this.cdr.detectChanges();
+    } else {
+      this.cargarFeed(true);
     }
   }
 
@@ -109,11 +122,14 @@ export class FeedComponent implements OnInit {
         this.hayMas = true;
         this.publicaciones = [];
         this.cargando = true;
+        this.publicacionService.clearFeedCache();
     }
 
     if (!this.hayMas || this.cargandoMas) return;
     if (!reset) this.cargandoMas = true;
     
+    this.publicacionService.setFiltrosCache(this.filtros);
+
     if (this.esEstudiante) {
         if (this.filtros.scope === 'GLOBAL') {
             this.filtros.esGlobal = true;
@@ -136,7 +152,8 @@ export class FeedComponent implements OnInit {
         this.filtros.esGlobal, 
         this.filtros.grupo,
         this.pagina,
-        this.size
+        this.size,
+        reset
     ).subscribe({
       next: (data) => {
         const nuevas = data.map(p => ({
@@ -210,11 +227,9 @@ export class FeedComponent implements OnInit {
 
   onCarrerasChange() {
     if (this.nuevaPublicacion.idsCarreras.length > 0) {
-        const requests = this.nuevaPublicacion.idsCarreras.map(id => this.grupoService.getAllByCarrera(id));
-        forkJoin(requests).subscribe({
+        this.grupoService.getAllByCarreraIds(this.nuevaPublicacion.idsCarreras).subscribe({
             next: (results) => {
-                const todosLosGrupos = results.flat();
-                this.gruposDisponibles = todosLosGrupos.sort((a, b) => this.compararNombresGrupos(a.nombre, b.nombre));
+                this.gruposDisponibles = results.sort((a, b) => this.compararNombresGrupos(a.nombre, b.nombre));
                 this.nuevaPublicacion.idsGrupos = this.nuevaPublicacion.idsGrupos.filter(idG => 
                     this.gruposDisponibles.some(g => g.id === idG)
                 );
@@ -248,43 +263,46 @@ export class FeedComponent implements OnInit {
   }
 
   toggleLike(publicacion: Publicacion) {
-    if (publicacion.meGusta) {
-      this.publicacionService.quitarLike(publicacion.id).subscribe({
-        next: () => {
-          publicacion.meGusta = false;
-          publicacion.totalLikes--;
-          this.cdr.detectChanges();
-        }
-      });
-    } else {
-      this.publicacionService.darLike(publicacion.id).subscribe({
-        next: () => {
-          publicacion.meGusta = true;
-          publicacion.totalLikes++;
-          this.cdr.detectChanges();
-        }
-      });
-    }
+    const estadoAnterior = publicacion.meGusta;
+    const likesAnteriores = publicacion.totalLikes;
+
+    publicacion.meGusta = !publicacion.meGusta;
+    publicacion.totalLikes += publicacion.meGusta ? 1 : -1;
+    this.cdr.detectChanges();
+
+    const accion = estadoAnterior 
+      ? this.publicacionService.quitarLike(publicacion.id) 
+      : this.publicacionService.darLike(publicacion.id);
+
+    accion.subscribe({
+      error: (err) => {
+        publicacion.meGusta = estadoAnterior;
+        publicacion.totalLikes = likesAnteriores;
+        this.cdr.detectChanges();
+        alert('No se pudo procesar el like. Inténtalo de nuevo.');
+      }
+    });
   }
 
   toggleLikeComentario(comentario: Comentario) {
-    if (comentario.meGusta) {
-      this.publicacionService.quitarLikeComentario(comentario.id).subscribe({
-        next: () => {
-          comentario.meGusta = false;
-          comentario.totalLikes--;
-          this.cdr.detectChanges();
-        }
-      });
-    } else {
-      this.publicacionService.darLikeComentario(comentario.id).subscribe({
-        next: () => {
-          comentario.meGusta = true;
-          comentario.totalLikes++;
-          this.cdr.detectChanges();
-        }
-      });
-    }
+    const estadoAnterior = comentario.meGusta;
+    const likesAnteriores = comentario.totalLikes;
+
+    comentario.meGusta = !comentario.meGusta;
+    comentario.totalLikes += comentario.meGusta ? 1 : -1;
+    this.cdr.detectChanges();
+
+    const accion = estadoAnterior
+      ? this.publicacionService.quitarLikeComentario(comentario.id)
+      : this.publicacionService.darLikeComentario(comentario.id);
+
+    accion.subscribe({
+      error: (err) => {
+        comentario.meGusta = estadoAnterior;
+        comentario.totalLikes = likesAnteriores;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   toggleComentarios(publicacion: Publicacion) {
@@ -409,6 +427,13 @@ export class FeedComponent implements OnInit {
         this.nuevaPublicacion.idsGrupos
     ).subscribe({
         next: async (publicacion) => {
+            if (publicacion.moderacion === 'RECHAZADO') {
+                alert('Tu publicación ha sido rechazada por moderación automática. Por favor, asegúrate de que el contenido sea apropiado.');
+                this.publicando = false;
+                this.cdr.detectChanges();
+                return;
+            }
+
             if (this.archivosSeleccionados.length > 0) {
                 for (const archivo of this.archivosSeleccionados) {
                     const url = await this.supabaseService.subirArchivo(archivo);
@@ -421,6 +446,10 @@ export class FeedComponent implements OnInit {
         },
         error: (err) => {
             this.publicando = false;
+            if (err.status === 400) {
+                alert(err.error.message || 'Error al crear la publicación');
+            }
+            this.cdr.detectChanges();
         }
     });
   }

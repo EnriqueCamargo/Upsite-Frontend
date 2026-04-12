@@ -11,6 +11,7 @@
 .filtros-feed {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 15px;
     background: white;
     padding: 15px 20px;
@@ -53,6 +54,19 @@
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    .filtros-feed {
+        justify-content: space-between;
+    }
+    .btn-refresh {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 5px;
+    }
 }
 
 .btn-refresh:hover {

@@ -142,15 +142,35 @@ export class PerfilComponent implements OnInit {
 
   toggleFollow() {
     if (!this.usuario) return;
-    if (this.usuario.loSigo) {
-      this.usuarioService.dejarDeSeguir(this.usuario.id).subscribe(() => {
-        this.cargarUsuario(this.usuario!.id);
-      });
-    } else {
-      this.usuarioService.seguir(this.usuario.id).subscribe(() => {
-        this.cargarUsuario(this.usuario!.id);
-      });
-    }
+    
+    // Guardar estado previo
+    const loSigoAnterior = this.usuario.loSigo;
+    const seguidoresAnterior = this.usuario.seguidoresCount;
+
+    // Cambio optimista
+    this.usuario.loSigo = !this.usuario.loSigo;
+    this.usuario.seguidoresCount += this.usuario.loSigo ? 1 : -1;
+    this.cdr.detectChanges();
+
+    const accion = loSigoAnterior
+      ? this.usuarioService.dejarDeSeguir(this.usuario.id)
+      : this.usuarioService.seguir(this.usuario.id);
+
+    accion.subscribe({
+      next: () => {
+        // En lugar de recargar todo el usuario, simplemente refrescamos las listas en segundo plano
+        this.cargarSeguidoresYSiguiendo();
+      },
+      error: (err) => {
+        // Revertir si falla
+        if (this.usuario) {
+          this.usuario.loSigo = loSigoAnterior;
+          this.usuario.seguidoresCount = seguidoresAnterior;
+          this.cdr.detectChanges();
+        }
+        alert('No se pudo procesar la acción de seguir. Inténtalo de nuevo.');
+      }
+    });
   }
 
   esMiPerfil(): boolean {
@@ -201,6 +221,9 @@ export class PerfilComponent implements OnInit {
         } else {
           publicacion.comentando = false;
         }
+        if (err.status === 400) {
+            alert(err.error.message || "Error al comentar");
+        }
         this.cdr.detectChanges();
       }
     });
@@ -219,39 +242,47 @@ export class PerfilComponent implements OnInit {
   }
 
   darLike(publicacion: Publicacion) {
-    if (publicacion.meGusta) {
-      this.publicacionService.quitarLike(publicacion.id).subscribe(() => {
-        publicacion.meGusta = false;
-        publicacion.totalLikes--;
+    const estadoAnterior = publicacion.meGusta;
+    const likesAnteriores = publicacion.totalLikes;
+
+    // Cambio optimista
+    publicacion.meGusta = !publicacion.meGusta;
+    publicacion.totalLikes += publicacion.meGusta ? 1 : -1;
+    this.cdr.detectChanges();
+
+    const accion = estadoAnterior 
+      ? this.publicacionService.quitarLike(publicacion.id) 
+      : this.publicacionService.darLike(publicacion.id);
+
+    accion.subscribe({
+      error: () => {
+        publicacion.meGusta = estadoAnterior;
+        publicacion.totalLikes = likesAnteriores;
         this.cdr.detectChanges();
-      });
-    } else {
-      this.publicacionService.darLike(publicacion.id).subscribe(() => {
-        publicacion.meGusta = true;
-        publicacion.totalLikes++;
-        this.cdr.detectChanges();
-      });
-    }
+      }
+    });
   }
 
   toggleLikeComentario(comentario: Comentario) {
-    if (comentario.meGusta) {
-      this.publicacionService.quitarLikeComentario(comentario.id).subscribe({
-        next: () => {
-          comentario.meGusta = false;
-          comentario.totalLikes--;
-          this.cdr.detectChanges();
-        }
-      });
-    } else {
-      this.publicacionService.darLikeComentario(comentario.id).subscribe({
-        next: () => {
-          comentario.meGusta = true;
-          comentario.totalLikes++;
-          this.cdr.detectChanges();
-        }
-      });
-    }
+    const estadoAnterior = comentario.meGusta;
+    const likesAnteriores = comentario.totalLikes;
+
+    // Cambio optimista
+    comentario.meGusta = !comentario.meGusta;
+    comentario.totalLikes += comentario.meGusta ? 1 : -1;
+    this.cdr.detectChanges();
+
+    const accion = estadoAnterior
+      ? this.publicacionService.quitarLikeComentario(comentario.id)
+      : this.publicacionService.darLikeComentario(comentario.id);
+
+    accion.subscribe({
+      error: () => {
+        comentario.meGusta = estadoAnterior;
+        comentario.totalLikes = likesAnteriores;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   abrirLightbox(media: MultimediaPublicacion[], index: number) {

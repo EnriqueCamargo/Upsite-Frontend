@@ -1,7 +1,23 @@
-<div class="login-container">
-  <h1>Upsite</h1>
-  <p>Red social académica</p>
-  <button (click)="loginConGoogle()">
-    Iniciar sesión con Google
-  </button>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-container">
+        <h1 class="logo-text">UPSITE</h1>
+      </div>
+    </div>
+
+    <div class="login-body">
+      <h2>Bienvenido</h2>
+      <p class="instruction">Inicia sesión con tu cuenta institucional para continuar</p>
+      
+      <button class="google-btn" (click)="loginConGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+        <span>Iniciar sesión con Google</span>
+      </button>
+    </div>
+
+    <div class="login-footer">
+      <p>&copy; 2026 Upsite - Red Social Académica</p>
+    </div>
+  </div>
 </div>

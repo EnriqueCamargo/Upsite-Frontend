@@ -42,6 +42,7 @@ export interface Publicacion {
   targetCarreras: Carrera[];
   targetGrupos: Grupo[];
   fechaPublicacion: string;
+  moderacion?: string;
   mostrarMenu?: boolean;
   comentando?: boolean;
   comentariosAbiertos?: boolean;

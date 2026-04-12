@@ -1,6 +1,6 @@
 <nav class="side-navbar" *ngIf="isLoggedIn()">
   <div class="logo">
-    <h1>Upsite</h1>
+    <h1>UPSITE</h1>
   </div>
 
   <div class="search-container">
@@ -8,14 +8,19 @@
       <input 
         type="text" 
         [(ngModel)]="searchText" 
-        (ngModelChange)="onSearchChange()" 
+        (keyup.enter)="onSearch()" 
         placeholder="Buscar usuarios..."
         class="search-input"
       />
-      <span class="search-icon">🔍</span>
+      <span class="search-icon" (click)="onSearch()" style="cursor: pointer;">🔍</span>
     </div>
     
-    <div class="search-results" *ngIf="mostrarResultados">
+    <div class="search-results" *ngIf="mostrarResultados || cargandoBusqueda">
+      <div class="search-header" *ngIf="mostrarResultados">
+        <span>Resultados</span>
+        <button class="close-search" (click)="cerrarResultados()">×</button>
+      </div>
+      <div class="search-loading" *ngIf="cargandoBusqueda">Buscando...</div>
       <div 
         class="search-item" 
         *ngFor="let user of searchResults" 

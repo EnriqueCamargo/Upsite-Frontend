@@ -1,11 +1,10 @@
-import { Component, inject, PLATFORM_ID, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, PLATFORM_ID, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { UsuarioService } from '../../services/usuario';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Usuario } from '../../interfaces/usuario';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -14,45 +13,55 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, of, Subscriptio
   styleUrl: './navbar.css',
   standalone: true
 })
-export class NavbarComponent implements OnInit, OnDestroy {
+export class NavbarComponent implements OnInit {
   private authService = inject(AuthService);
   private usuarioService = inject(UsuarioService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
 
   mostrarConfirmacion = false;
   searchText = '';
   searchResults: Usuario[] = [];
   mostrarResultados = false;
   esAdmin = false;
-  private searchSubject = new Subject<string>();
-  private searchSubscription?: Subscription;
+  cargandoBusqueda = false;
 
   ngOnInit() {
     const usuario = this.authService.getUsuario();
     this.esAdmin = usuario?.rol === 'ADMIN';
+  }
 
-    this.searchSubscription = this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(query => {
-        if (query.trim().length < 2) {
-          return of([]);
-        }
-        return this.usuarioService.buscar(query);
-      })
-    ).subscribe(results => {
-      this.searchResults = results;
-      this.mostrarResultados = results.length > 0;
+  // Forzar búsqueda al presionar Enter o botón
+  onSearch() {
+    const query = this.searchText.trim();
+    if (!query || query.length < 2) {
+      this.searchResults = [];
+      this.mostrarResultados = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.cargandoBusqueda = true;
+    this.mostrarResultados = true; // Mostrar el contenedor (con loading) de inmediato
+    this.cdr.detectChanges();
+
+    this.usuarioService.buscar(query, 0, 5).subscribe({
+      next: (results) => {
+        this.searchResults = results;
+        this.cargandoBusqueda = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cargandoBusqueda = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
-  ngOnDestroy() {
-    this.searchSubscription?.unsubscribe();
-  }
-
-  onSearchChange() {
-    this.searchSubject.next(this.searchText);
+  cerrarResultados() {
+    this.mostrarResultados = false;
+    this.cdr.detectChanges();
   }
 
   irAPerfil(id: number) {
