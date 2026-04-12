@@ -39,14 +39,18 @@
     
     <div class="opciones-publicacion">
       @if (!esEstudiante) {
-        <select [(ngModel)]="nuevaPublicacion.importancia">
+        <select [(ngModel)]="nuevaPublicacion.importancia" (change)="onImportanciaChange()">
           <option value="PUBLICACION">Publicación</option>
           <option value="AVISO">Aviso</option>
-          <option value="AVISO_IMPORTANTE">Urgente</option>
+          <option *ngIf="!esDocente" value="AVISO_IMPORTANTE">Urgente</option>
         </select>
 
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="nuevaPublicacion.esGlobal" />
+        <label class="checkbox-label" [class.disabled]="esDocente && nuevaPublicacion.importancia === 'AVISO'">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="nuevaPublicacion.esGlobal" 
+            [disabled]="esDocente && nuevaPublicacion.importancia === 'AVISO'"
+          />
           Global
         </label>
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID, HostListener, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PublicacionService } from '../../services/publicacion';
@@ -32,6 +32,7 @@ export class FeedComponent implements OnInit {
   error = false;
   publicando = false;
   esEstudiante = false;
+  esDocente = false;
   usuario: Usuario | null = null;
   archivosSeleccionados: File[] = [];
 
@@ -57,17 +58,19 @@ export class FeedComponent implements OnInit {
     idsGrupos: [] as number[]
   };
 
+  private cdr = inject(ChangeDetectorRef);
+
   constructor(
     private publicacionService: PublicacionService,
     private carreraService: CarreraService,
     private grupoService: GrupoService,
     private supabaseService: SupabaseService,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.usuario = this.authService.getUsuario();
     this.esEstudiante = this.usuario?.rol === Rol.ESTUDIANTE;
+    this.esDocente = this.usuario?.rol === Rol.DOCENTE;
     if (this.esEstudiante) {
         this.nuevaPublicacion.esGlobal = true;
         this.nuevaPublicacion.importancia = Importancia.PUBLICACION;
@@ -81,6 +84,12 @@ export class FeedComponent implements OnInit {
       this.cargarCarreras();
     } else {
       this.cargando = false;
+    }
+  }
+
+  onImportanciaChange() {
+    if (this.esDocente && this.nuevaPublicacion.importancia === Importancia.AVISO) {
+      this.nuevaPublicacion.esGlobal = false;
     }
   }
 
