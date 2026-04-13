@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -22,6 +22,7 @@ export class SetupDatosComponent implements OnInit {
   private usuarioService = inject(UsuarioService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   carreras: Carrera[] = [];
   grupos: Grupo[] = [];
@@ -31,14 +32,18 @@ export class SetupDatosComponent implements OnInit {
   cargando = false;
 
   ngOnInit() {
-    this.carreraService.getAll().subscribe(data => this.carreras = data);
+    this.carreraService.getAll().subscribe(data => {
+      this.carreras = data;
+      this.cdr.detectChanges();
+    });
   }
 
   onCarreraChange() {
     this.idGrupoSeleccionado = undefined;
     if (this.idCarreraSeleccionada) {
-      this.grupoService.getAllByCarrera(this.idCarreraSeleccionada).subscribe(data => {
+      this.grupoService.getAllByCarrera(Number(this.idCarreraSeleccionada)).subscribe(data => {
         this.grupos = data.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        this.cdr.detectChanges();
       });
     } else {
       this.grupos = [];

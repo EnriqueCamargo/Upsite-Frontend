@@ -15,6 +15,7 @@ import { Usuario } from '../../interfaces/usuario';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 import { RouterModule } from '@angular/router';
 import { LightboxComponent } from '../lightbox/lightbox';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-feed',
@@ -153,7 +154,7 @@ export class FeedComponent implements OnInit {
         this.filtros.grupo,
         this.pagina,
         this.size,
-        reset
+        reset // Aquí reset sirve como forceRefresh
     ).subscribe({
       next: (data) => {
         const nuevas = data.map(p => ({
@@ -410,15 +411,19 @@ export class FeedComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  async publicar() {
-    if (!this.nuevaPublicacion.texto.trim()) return;
+  publicar() {
+    if (!this.nuevaPublicacion.texto.trim() || this.publicando) return;
+    
     this.publicando = true;
+    this.cdr.detectChanges();
+
     if (this.esEstudiante) {
         this.nuevaPublicacion.esGlobal = true;
         this.nuevaPublicacion.importancia = Importancia.PUBLICACION;
         this.nuevaPublicacion.idsCarreras = [];
         this.nuevaPublicacion.idsGrupos = [];
     }
+
     this.publicacionService.crear(
         this.nuevaPublicacion.texto,
         this.nuevaPublicacion.importancia,
@@ -435,14 +440,23 @@ export class FeedComponent implements OnInit {
             }
 
             if (this.archivosSeleccionados.length > 0) {
-                for (const archivo of this.archivosSeleccionados) {
-                    const url = await this.supabaseService.subirArchivo(archivo);
-                    await this.publicacionService.subirMultimedia(publicacion.id, url, archivo.type).toPromise();
+                try {
+                    for (const archivo of this.archivosSeleccionados) {
+                        const url = await this.supabaseService.subirArchivo(archivo);
+                        // Usamos lastValueFrom para esperar la subida al backend
+                        await lastValueFrom(this.publicacionService.subirMultimedia(publicacion.id, url, archivo.type));
+                    }
+                } catch (error) {
+                    console.error('Error al subir multimedia:', error);
+                    alert('Hubo un error al subir las imágenes, pero la publicación se creó.');
                 }
             }
+            
             this.limpiarFormulario();
             this.publicando = false;
+            // Forzamos el refresco del feed ignorando la caché
             this.cargarFeed(true);
+            this.cdr.detectChanges();
         },
         error: (err) => {
             this.publicando = false;

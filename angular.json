@@ -23,7 +23,8 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              }
+              },
+              "src/assets/imagenes/favicon/favicon-32x32.png"
             ],
             "styles": ["src/styles.css"],
             "outputMode": "static",

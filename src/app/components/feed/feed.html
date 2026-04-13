@@ -112,7 +112,7 @@
       </div>
     </div>
     
-    <button class="btn-publicar" (click)="publicar()" [disabled]="publicando || !nuevaPublicacion.texto.trim()">
+    <button class="btn-publicar" (click)="publicar()">
       {{ publicando ? 'Publicando...' : 'Publicar' }}
     </button>
   </div>
