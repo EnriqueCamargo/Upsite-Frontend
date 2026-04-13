@@ -102,6 +102,23 @@
   border: 1px solid #e0e0e0;
 }
 
+@media (max-width: 576px) {
+  .admin-container {
+    padding: 15px;
+  }
+  .admin-table th, .admin-table td {
+    padding: 10px;
+    font-size: 12px;
+  }
+  .user-info-cell {
+    gap: 8px;
+  }
+  .table-avatar {
+    width: 25px;
+    height: 25px;
+  }
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;

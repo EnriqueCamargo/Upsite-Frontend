@@ -24,6 +24,7 @@ export class NavbarComponent implements OnInit {
   searchText = '';
   searchResults: Usuario[] = [];
   mostrarResultados = false;
+  mostrarResultadosMobile = false;
   esAdmin = false;
   cargandoBusqueda = false;
 

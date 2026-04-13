@@ -1,3 +1,53 @@
+<nav class="mobile-top-bar" *ngIf="isLoggedIn()">
+  <div class="mobile-logo">
+    <h1>UPSITE</h1>
+  </div>
+  <div class="mobile-actions">
+    <button class="mobile-search-toggle" (click)="mostrarResultadosMobile = !mostrarResultadosMobile">🔍</button>
+    <button class="mobile-logout-btn" (click)="toggleConfirmacion()">🚪</button>
+  </div>
+  
+  <div class="mobile-search-overlay" *ngIf="mostrarResultadosMobile">
+    <div class="mobile-search-input-wrapper">
+        <input 
+          type="text" 
+          [(ngModel)]="searchText" 
+          (keyup.enter)="onSearch()" 
+          placeholder="Buscar..."
+          class="mobile-search-input"
+        />
+        <button class="close-mobile-search" (click)="mostrarResultadosMobile = false">✕</button>
+    </div>
+    <div class="search-results mobile" *ngIf="mostrarResultados || cargandoBusqueda">
+        <!-- Results same as side-navbar -->
+        <div class="search-header" *ngIf="mostrarResultados">
+          <span>Resultados</span>
+        </div>
+        <div class="search-loading" *ngIf="cargandoBusqueda">Buscando...</div>
+        <div 
+          class="search-item" 
+          *ngFor="let user of searchResults" 
+          (click)="irAPerfil(user.id); mostrarResultadosMobile = false"
+        >
+          <img [src]="user.fotoPerfil || 'assets/default-avatar.png'" class="search-avatar">
+          <div class="search-info">
+            <span class="search-name">{{ user.nombres }} {{ user.apellidos }}</span>
+            <span class="search-meta">{{ user.carrera || user.rol }}</span>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Tooltip de logout para mobile -->
+  <div class="confirm-tooltip mobile" *ngIf="mostrarConfirmacion">
+    <p>¿Cerrar sesión?</p>
+    <div class="tooltip-actions">
+      <button (click)="confirmarLogout()" class="btn-si">Sí</button>
+      <button (click)="cancelarLogout()" class="btn-no">No</button>
+    </div>
+  </div>
+</nav>
+
 <nav class="side-navbar" *ngIf="isLoggedIn()">
   <div class="logo">
     <h1>UPSITE</h1>
