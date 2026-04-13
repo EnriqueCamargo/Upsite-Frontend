@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
 import { Publicacion } from '../interfaces/publicacion';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 import { Importancia } from '../enums/importancia';
 import { TipoMultimedia } from '../enums/tipo-multimedia';
 import { AuthService } from './auth';
