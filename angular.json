@@ -63,6 +63,9 @@
           "defaultConfiguration": "production"
         },
         "serve": {
+          "options": {
+            "allowedHosts": ["nursing-publishers-vincent-worldcat.trycloudflare.com"]
+          },
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
